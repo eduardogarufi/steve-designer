@@ -8,13 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- GitHub Actions CI (plugin.json validation, shellcheck, install.sh dry-run)
+- `/steve-designer:arsenal` slash command — checks prerequisites and, on confirmation, installs whatever is missing
+- `check_arsenal.sh --install` flag (with `-y` / `--yes` for non-interactive mode)
+  runs the install commands end-to-end instead of only printing them
+- GitHub Actions CI (plugin.json validation, shellcheck, install.sh dry-run,
+  runs on Node.js 24 via `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`)
 - `CHANGELOG.md`, `CONTRIBUTING.md`
 - Issue templates (bug report, reference request, feature request) and PR template
 - Installer excludes repo-meta (`.git`, `docs`, `LICENSE`, `README.md`, etc.) from installed plugin
 
 ### Fixed
 - `install.sh` no longer bloats installed plugin with repository metadata
+- Shellcheck SC2034 warnings in `scripts/start_preview.sh` (unused loop vars)
 
 ## [0.1.0] — 2026-04-20
 

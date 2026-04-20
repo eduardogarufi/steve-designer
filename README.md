@@ -43,11 +43,20 @@ Then restart Claude Code.
 ## Usage
 
 ```
+/steve-designer:arsenal     # check prerequisites, optionally install missing
 /steve-designer:start       # new design session
 /steve-designer:resume      # continue from design-brief.md
 ```
 
-On first run, steve-designer will check your arsenal. Install what it recommends for full capacity. It can operate in degraded mode without the essentials, but the quality bar drops measurably.
+On first run, steve-designer will check your arsenal. `/steve-designer:arsenal` can also run the check on demand and offer to install what's missing. It can operate in degraded mode without the essentials, but the quality bar drops measurably.
+
+You can also run the check from the shell directly:
+
+```bash
+scripts/check_arsenal.sh              # report only
+scripts/check_arsenal.sh --install    # report, then prompt to install
+scripts/check_arsenal.sh --install -y # install without confirmation
+```
 
 ## The arsenal it orchestrates
 

@@ -2,17 +2,46 @@
 #
 # check_arsenal.sh — verifies steve-designer's prerequisite plugins, skills, and MCPs
 #
-# Exit codes:
-#   0 — all essentials present
-#   1 — some essentials missing (caller should surface install commands)
-#   2 — claude CLI not found (user isn't in Claude Code)
+# Usage:
+#   check_arsenal.sh               # report only (default)
+#   check_arsenal.sh --install     # report, then offer to run the install commands
+#   check_arsenal.sh --install -y  # same, but skip the confirmation prompt
+#   check_arsenal.sh --help
 #
-# Output format: two sections printed to stdout
-#   Section 1: human-readable status
-#   Section 2: a single block of shell commands to install missing essentials
-#              (empty if nothing missing)
+# Exit codes:
+#   0 — all essentials present (or --install succeeded on all missing items)
+#   1 — some essentials missing and not installed (or --install had failures)
+#   2 — claude CLI not found (user isn't in Claude Code)
 
 set -u
+
+# -------- parse args --------
+INSTALL=0
+ASSUME_YES=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install)   INSTALL=1;    shift ;;
+    -y|--yes)    ASSUME_YES=1; shift ;;
+    -h|--help)
+      cat <<'HELP'
+check_arsenal.sh — verify steve-designer prerequisites
+
+Usage:
+  check_arsenal.sh               report only (default)
+  check_arsenal.sh --install     report, then offer to run install commands
+  check_arsenal.sh --install -y  install without confirmation prompt
+  check_arsenal.sh --help        show this message
+
+Exit codes:
+  0  all essentials present (or --install succeeded)
+  1  something missing (or --install had failures)
+  2  claude CLI not found on PATH
+HELP
+      exit 0
+      ;;
+    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
 
 # -------- colors (only if tty) --------
 if [[ -t 1 ]]; then
@@ -135,7 +164,7 @@ fi
 
 echo "${YELLOW}${BOLD}Missing ${#MISSING_COMMANDS[@]} item(s).${RESET}"
 echo ""
-echo "${BOLD}Copy-paste to install everything missing:${RESET}"
+echo "${BOLD}Install commands:${RESET}"
 echo ""
 echo "${DIM}---BEGIN INSTALL BLOCK---${RESET}"
 for cmd in "${MISSING_COMMANDS[@]}"; do
@@ -143,7 +172,54 @@ for cmd in "${MISSING_COMMANDS[@]}"; do
 done
 echo "${DIM}---END INSTALL BLOCK---${RESET}"
 echo ""
-echo "${DIM}After installing, restart Claude Code for plugins/MCPs to register.${RESET}"
-echo ""
 
+if [[ $INSTALL -eq 0 ]]; then
+  echo "${DIM}Re-run with --install to execute these, or copy-paste them yourself.${RESET}"
+  echo "${DIM}After installing, restart Claude Code for plugins/MCPs to register.${RESET}"
+  echo ""
+  exit 1
+fi
+
+# -------- --install flow --------
+if [[ $ASSUME_YES -eq 0 ]]; then
+  if [[ ! -t 0 ]]; then
+    echo "${RED}--install requires a TTY for confirmation, or pass -y / --yes.${RESET}"
+    exit 1
+  fi
+  read -rp "Run all ${#MISSING_COMMANDS[@]} command(s) now? [y/N]: " reply
+  case "$reply" in
+    y|Y|yes|YES) ;;
+    *) echo "Aborted."; exit 1 ;;
+  esac
+fi
+
+echo ""
+echo "${BOLD}Installing...${RESET}"
+FAILED=()
+for cmd in "${MISSING_COMMANDS[@]}"; do
+  echo ""
+  echo "${DIM}\$ $cmd${RESET}"
+  if ! bash -c "$cmd"; then
+    FAILED+=("$cmd")
+    echo "${RED}  ✗ Failed.${RESET}"
+  else
+    echo "${GREEN}  ✓ Done.${RESET}"
+  fi
+done
+
+echo ""
+if [[ ${#FAILED[@]} -eq 0 ]]; then
+  echo "${GREEN}${BOLD}All ${#MISSING_COMMANDS[@]} item(s) installed.${RESET}"
+  echo "${DIM}Restart Claude Code so new plugins/MCPs register.${RESET}"
+  echo ""
+  exit 0
+fi
+
+echo "${RED}${BOLD}${#FAILED[@]} command(s) failed:${RESET}"
+for cmd in "${FAILED[@]}"; do
+  echo "  ${RED}✗${RESET} $cmd"
+done
+echo ""
+echo "${DIM}Re-run them manually, or re-run this script with --install once resolved.${RESET}"
+echo ""
 exit 1

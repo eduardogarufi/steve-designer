@@ -50,6 +50,7 @@ jobs:
           test -f skills/steve-designer/SKILL.md || { echo "::error::missing skills/steve-designer/SKILL.md"; exit 1; }
           test -f commands/start.md              || { echo "::error::missing commands/start.md"; exit 1; }
           test -f commands/resume.md             || { echo "::error::missing commands/resume.md"; exit 1; }
+          test -f commands/arsenal.md            || { echo "::error::missing commands/arsenal.md"; exit 1; }
           for agent in tokens-engineer component-builder design-critic; do
             test -f "agents/${agent}.md" || { echo "::error::missing agents/${agent}.md"; exit 1; }
           done
