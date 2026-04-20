@@ -60,7 +60,7 @@ if [[ "$STATIC_MODE" == "true" ]]; then
   echo "$PID" > .steve-designer-preview.pid
 
   # wait up to 5s for the server to come up
-  for i in {1..50}; do
+  for _ in {1..50}; do
     if curl -s "http://localhost:$PORT" >/dev/null 2>&1; then
       break
     fi
