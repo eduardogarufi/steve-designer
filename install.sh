@@ -82,10 +82,32 @@ fi
 echo ""
 echo "${BOLD}Installing to:${RESET} $DEST"
 mkdir -p "$(dirname "$DEST")"
-cp -r "$SCRIPT_DIR" "$DEST"
 
-# Remove the installer itself from the installed copy
-rm -f "$DEST/install.sh"
+# Prefer rsync for clean excludes; fall back to cp + rm for portability
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a \
+    --exclude='.git' \
+    --exclude='.github' \
+    --exclude='.gitignore' \
+    --exclude='.omc' \
+    --exclude='.claude' \
+    --exclude='.DS_Store' \
+    --exclude='docs' \
+    --exclude='install.sh' \
+    --exclude='LICENSE' \
+    --exclude='CHANGELOG.md' \
+    --exclude='CONTRIBUTING.md' \
+    --exclude='README.md' \
+    "$SCRIPT_DIR/" "$DEST/"
+else
+  cp -r "$SCRIPT_DIR" "$DEST"
+  # Strip repo-meta and installer cruft from the installed copy
+  rm -rf "$DEST/.git" "$DEST/.github" "$DEST/.omc" "$DEST/.claude" \
+         "$DEST/docs" 2>/dev/null || true
+  rm -f  "$DEST/.gitignore" "$DEST/.DS_Store" "$DEST/install.sh" \
+         "$DEST/LICENSE" "$DEST/CHANGELOG.md" "$DEST/CONTRIBUTING.md" \
+         "$DEST/README.md" 2>/dev/null || true
+fi
 
 # Ensure scripts are executable
 find "$DEST/scripts" -name "*.sh" -type f -exec chmod +x {} \; 2>/dev/null || true

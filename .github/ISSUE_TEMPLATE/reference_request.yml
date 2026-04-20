@@ -1,0 +1,64 @@
+name: Reference catalog addition
+description: Propose a new canonical reference for the web or app catalogs
+labels: ["references", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        steve-designer's reference catalogs only accept entries with a written
+        **DNA** — what the reference is *doing*, not just "it looks nice".
+        See `CONTRIBUTING.md` for the format.
+
+  - type: dropdown
+    id: catalog
+    attributes:
+      label: Catalog
+      options:
+        - Web (awwwards-dna.md)
+        - App (app-references.md)
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Reference name
+      placeholder: "Linear, Aesop, Arc Search, Cash App, …"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL or App Store link
+    validations:
+      required: true
+
+  - type: textarea
+    id: dna
+    attributes:
+      label: DNA (what it's actually doing)
+      description: |
+        2–4 sentences. Describe structure, type system, palette discipline,
+        motion philosophy — whatever makes this reference itself. Not adjectives.
+      placeholder: |
+        Aesop treats the page as a magazine column. Serif body at long measure,
+        tiny sans caps labels, generous leading. No hero images — the product
+        shots sit as quiet still-lifes inside the column flow. The restraint is
+        the voice.
+    validations:
+      required: true
+
+  - type: textarea
+    id: when-to-use
+    attributes:
+      label: When this reference fits
+      description: What kinds of projects should reach for it? What should NOT?
+    validations:
+      required: true
+
+  - type: textarea
+    id: pair-well-with
+    attributes:
+      label: Pairs well with (improbable combos)
+      description: Which catalog entries combine with this one to avoid averaging?

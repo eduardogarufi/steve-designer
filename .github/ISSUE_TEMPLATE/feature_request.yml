@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a change to the workflow, subagents, or orchestration
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For **new reference catalog entries**, please use the *Reference catalog
+        addition* template instead — the format is different.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem you're hitting?
+      description: A description of what's annoying, broken, or missing today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should steve-designer do instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which phase does this touch?
+      options:
+        - Arsenal Check
+        - Discovery
+        - References
+        - Tokens
+        - Build
+        - Polish
+        - Cross-cutting / orchestration
+        - Installer / docs / tooling
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?

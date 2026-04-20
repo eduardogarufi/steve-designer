@@ -109,6 +109,15 @@ steve-designer/
 
 **Version 0.1.0 — early.** Core flow works; the `references/` catalog will expand as real projects exercise it. If a reference is wrong, a catalog entry is missing, or a subagent produces something off, flag it — the skill improves by running.
 
+See [`CHANGELOG.md`](./CHANGELOG.md) for release history.
+
+## Contributing
+
+Issues and PRs welcome. The highest-leverage contribution is extending the
+reference catalogs in `skills/steve-designer/references/` — every entry follows
+the DNA format documented in [`CONTRIBUTING.md`](./CONTRIBUTING.md). Please
+open an issue before sending a PR for anything larger than a fix.
+
 ## License
 
-MIT.
+MIT — see [`LICENSE`](./LICENSE).
