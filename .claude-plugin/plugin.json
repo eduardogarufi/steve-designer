@@ -1,0 +1,24 @@
+{
+  "name": "steve-designer",
+  "version": "0.1.0",
+  "description": "Agentic design orchestrator for Claude Code. Conducts strategic discovery, synthesizes references, defines tokens, then delegates build and polish to specialized subagents and plugins.",
+  "author": {
+    "name": "Eduardo Garufi",
+    "email": "eduardo@capitaltrend.group",
+    "url": "https://github.com/eduardogarufi"
+  },
+  "homepage": "https://github.com/eduardogarufi/steve-designer",
+  "repository": "https://github.com/eduardogarufi/steve-designer",
+  "license": "MIT",
+  "keywords": [
+    "design",
+    "ui",
+    "ux",
+    "design-system",
+    "design-tokens",
+    "orchestration",
+    "frontend",
+    "agentic",
+    "claude-code"
+  ]
+}
