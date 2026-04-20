@@ -142,7 +142,7 @@ echo ""
 echo "${DIM}Waiting for server to start (up to 30s)...${RESET}"
 
 # wait for the port to respond
-for i in {1..60}; do
+for _ in {1..60}; do
   if curl -s "http://localhost:$DEFAULT_PORT" >/dev/null 2>&1; then
     echo ""
     echo "${GREEN}✓ Dev server up${RESET}"
