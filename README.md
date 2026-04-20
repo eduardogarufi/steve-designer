@@ -17,28 +17,44 @@ Everything gets persisted to `design-brief.md` in your project root. You can lea
 
 ## Install
 
-### Quick install (run from inside the plugin directory)
+steve-designer is a Claude Code plugin. Install it with the built-in plugin CLI.
+
+### From GitHub (recommended)
 
 ```bash
-./install.sh
+claude plugin marketplace add eduardogarufi/steve-designer
+claude plugin install steve-designer@steve-designer
 ```
-
-You'll be asked whether to install as **personal** (every Claude Code session) or **project** (only this project).
-
-### Non-interactive
-
-```bash
-./install.sh --personal    # ~/.claude/plugins/steve-designer
-./install.sh --project     # ./.claude/plugins/steve-designer
-```
-
-### Manual
-
-Copy the entire plugin folder to either:
-- `~/.claude/plugins/steve-designer/` (personal)
-- `./.claude/plugins/steve-designer/` (project)
 
 Then restart Claude Code.
+
+### From a local clone (for plugin development)
+
+```bash
+git clone https://github.com/eduardogarufi/steve-designer.git
+cd steve-designer
+./install.sh --local       # or just ./install.sh for interactive
+```
+
+Your local edits reflect the next time Claude Code restarts.
+
+### Installer flags
+
+```bash
+./install.sh               # interactive — asks local clone or GitHub
+./install.sh --local       # register this directory as a marketplace
+./install.sh --github      # register the GitHub repo as a marketplace
+./install.sh --uninstall   # remove plugin + marketplace
+```
+
+### Uninstall
+
+```bash
+./install.sh --uninstall
+# or
+claude plugin uninstall steve-designer@steve-designer
+claude plugin marketplace remove steve-designer
+```
 
 ## Usage
 
@@ -95,7 +111,8 @@ It's also the craft of *resistance*. Awwwards-style is wrong for SaaS dashboards
 ```
 steve-designer/
 ├── .claude-plugin/
-│   └── plugin.json
+│   ├── plugin.json               # Plugin manifest
+│   └── marketplace.json          # Marketplace manifest (makes this repo installable)
 ├── skills/
 │   └── steve-designer/
 │       ├── SKILL.md              # The brain
@@ -106,11 +123,14 @@ steve-designer/
 │   ├── component-builder.md      # Spawned in Phase 5
 │   └── design-critic.md          # Spawned in Phase 6
 ├── commands/
+│   ├── arsenal.md                # /steve-designer:arsenal
 │   ├── start.md                  # /steve-designer:start
 │   └── resume.md                 # /steve-designer:resume
 ├── scripts/
-│   └── check_arsenal.sh          # Verifies installed tools
-├── install.sh                    # Installer
+│   ├── check_arsenal.sh          # Verifies installed tools (supports --install)
+│   ├── init_project_brief.py     # Seeds design-brief.md
+│   └── start_preview.sh          # Local preview server
+├── install.sh                    # Installer wrapper (marketplace add + install)
 └── README.md                     # This file
 ```
 

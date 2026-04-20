@@ -1,50 +1,75 @@
 # steve-designer — Guia rápido de instalação
 
-## 1. Extrair
+steve-designer é um **plugin do Claude Code**. A instalação usa o próprio CLI
+do Claude Code — ele **não** descobre plugins que você joga em
+`~/.claude/plugins/` manualmente; é preciso registrar via marketplace.
 
-### tar.gz
+## 1. Do GitHub (recomendado)
+
 ```bash
-tar -xzf steve-designer-plugin-v0.1.0.tar.gz
-cd steve-designer-plugin
+claude plugin marketplace add eduardogarufi/steve-designer
+claude plugin install steve-designer@steve-designer
 ```
 
-### zip
+Depois **reinicie o Claude Code**.
+
+## 2. De um clone local (para desenvolvimento do plugin)
+
 ```bash
-unzip steve-designer-plugin-v0.1.0.zip
-cd steve-designer-plugin
+git clone https://github.com/eduardogarufi/steve-designer.git
+cd steve-designer
+./install.sh --local
 ```
 
-## 2. Instalar
+Suas edições aparecem no próximo restart do Claude Code.
 
-### Interativo (recomendado na primeira vez)
+## 3. Instalador interativo
+
 ```bash
 ./install.sh
 ```
-Vai perguntar se você quer instalar como **pessoal** (em qualquer projeto) ou **projeto** (só neste).
 
-### Direto
+Vai perguntar se você quer instalar do clone local ou do GitHub.
+
+### Flags não-interativas
+
 ```bash
-./install.sh --personal   # ~/.claude/plugins/steve-designer
-./install.sh --project    # ./.claude/plugins/steve-designer
+./install.sh --local       # registra este diretório como marketplace
+./install.sh --github      # registra o repo do GitHub como marketplace
+./install.sh --uninstall   # remove plugin + marketplace
 ```
 
-### Manual (se preferir)
-Basta copiar a pasta inteira para:
-- `~/.claude/plugins/steve-designer/` (pessoal)
-- `./.claude/plugins/steve-designer/` (projeto)
+## 4. Conferir se funcionou
 
-## 3. Reiniciar o Claude Code
+Depois de reiniciar o Claude Code, rode:
 
-Fecha e abre uma nova sessão — plugins e skills só registram na inicialização.
-
-## 4. Usar
-
-```
-/steve-designer:start     # novo projeto
-/steve-designer:resume    # continuar onde parou (lê design-brief.md)
+```bash
+claude plugin list | grep steve-designer
 ```
 
-A primeira coisa que ele faz é **arsenal check** — te diz o que falta instalar e te dá os comandos prontos para copiar.
+Deve aparecer `steve-designer@steve-designer  ✔ enabled`.
+
+Dentro do Claude Code:
+
+```
+/help
+```
+
+Deve listar:
+- `/steve-designer:arsenal`
+- `/steve-designer:start`
+- `/steve-designer:resume`
+
+## 5. Usar
+
+```
+/steve-designer:arsenal   # checa pré-requisitos, oferece instalar o que falta
+/steve-designer:start     # novo projeto de design
+/steve-designer:resume    # continuar de onde parou (lê design-brief.md)
+```
+
+O `/arsenal` roda o `scripts/check_arsenal.sh` e, se você aceitar, executa os
+comandos de instalação automaticamente (plugins, MCPs e skills essenciais).
 
 ## Configuração mínima recomendada para rodar em capacidade plena
 
@@ -63,38 +88,37 @@ npx ui-skills add fixing-motion-performance
 
 Sem estes, ele opera em modo degradado (ele te avisa o que fica pior).
 
-## Como saber se funcionou
+## Desinstalar
 
-Depois de instalar e reiniciar, rode:
+```bash
+./install.sh --uninstall
+# ou manualmente:
+claude plugin uninstall steve-designer@steve-designer
+claude plugin marketplace remove steve-designer
 ```
-/help
-```
-Você deve ver `steve-designer:start` e `steve-designer:resume` na lista de comandos.
-
-Ou simplesmente diga algo como: "Quero criar um site para X" — o skill deve ativar automaticamente por conta da descrição no frontmatter.
 
 ## Estrutura do que você está instalando
 
 ```
-steve-designer-plugin/
-├── .claude-plugin/plugin.json          # manifest
-├── README.md                           # doc completa
-├── install.sh                          # installer
-├── commands/                           # /steve-designer:start, :resume
-├── agents/                             # 3 subagents (tokens, build, critic)
-├── scripts/                            # check_arsenal, init_brief, start_preview
+steve-designer/
+├── .claude-plugin/
+│   ├── plugin.json               # manifest do plugin
+│   └── marketplace.json          # manifest do marketplace
+├── commands/                     # /steve-designer:arsenal, :start, :resume
+├── agents/                       # 3 subagents (tokens, build, critic)
+├── scripts/                      # check_arsenal, init_brief, start_preview
 └── skills/steve-designer/
-    ├── SKILL.md                        # o cérebro
-    ├── references/                     # 7 arquivos de referência (catálogos, anti-patterns, etc.)
-    └── templates/                      # 3 templates (brief, final-prompt, CLAUDE.md snippet)
+    ├── SKILL.md                  # o cérebro
+    ├── references/               # catálogos de referência, anti-patterns
+    └── templates/                # brief + snippets
 ```
 
 ## Primeiro teste sugerido
 
 Num projeto vazio qualquer:
-1. `/steve-designer:start`
-2. Deixa ele rodar o arsenal check
-3. Começa a conversar quando ele fizer a primeira pergunta de Discovery
-4. Veja se a conversa sai no tom que você queria
+1. `/steve-designer:arsenal` — confirma que tudo está instalado
+2. `/steve-designer:start` — começa o fluxo
+3. Deixa ele rodar Discovery e veja se o tom sai no ponto
 
-Se alguma coisa parecer estranha — tom, perguntas repetitivas, referência errada — é sinal para eu ajustar. Manda o trecho do chat e a gente refina.
+Se alguma coisa parecer estranha — tom, perguntas repetitivas, referência
+errada — é sinal para ajustar. Mande o trecho do chat e a gente refina.

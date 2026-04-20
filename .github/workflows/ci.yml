@@ -18,21 +18,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate plugin.json schema
+      - name: Validate plugin + marketplace manifests
         run: |
           python3 - <<'PY'
           import json, sys
+
+          # plugin.json
           with open(".claude-plugin/plugin.json") as f:
+              p = json.load(f)
+          if "name" not in p:
+              print("::error::plugin.json missing required field: name"); sys.exit(1)
+          if p["name"] != "steve-designer":
+              print(f"::error::plugin.json name mismatch: {p['name']!r}"); sys.exit(1)
+          print(f"OK plugin.json: {p['name']} v{p.get('version','?')}")
+
+          # marketplace.json
+          with open(".claude-plugin/marketplace.json") as f:
               m = json.load(f)
-          required = ["name"]
-          missing = [k for k in required if k not in m]
-          if missing:
-              print(f"::error::plugin.json missing required fields: {missing}")
-              sys.exit(1)
-          if m["name"] != "steve-designer":
-              print(f"::error::plugin.json name mismatch: {m['name']!r}")
-              sys.exit(1)
-          print(f"OK plugin.json: {m['name']} v{m.get('version','?')}")
+          for key in ("name", "owner", "plugins"):
+              if key not in m:
+                  print(f"::error::marketplace.json missing required field: {key}"); sys.exit(1)
+          if not isinstance(m["plugins"], list) or not m["plugins"]:
+              print("::error::marketplace.json plugins[] must be a non-empty list"); sys.exit(1)
+          plugin_names = [pl.get("name") for pl in m["plugins"]]
+          if "steve-designer" not in plugin_names:
+              print(f"::error::marketplace.json does not list steve-designer plugin (found {plugin_names})"); sys.exit(1)
+          # version drift check
+          for pl in m["plugins"]:
+              if pl.get("name") == "steve-designer" and pl.get("version") != p.get("version"):
+                  print(f"::warning::version drift: plugin.json={p.get('version')} vs marketplace.json={pl.get('version')}")
+          print(f"OK marketplace.json: {m['name']} ({len(m['plugins'])} plugin(s))")
           PY
 
       - name: Lint shell scripts
@@ -46,11 +61,12 @@ jobs:
         run: |
           set -e
           echo "Verifying required plugin structure..."
-          test -f .claude-plugin/plugin.json || { echo "::error::missing .claude-plugin/plugin.json"; exit 1; }
-          test -f skills/steve-designer/SKILL.md || { echo "::error::missing skills/steve-designer/SKILL.md"; exit 1; }
-          test -f commands/start.md              || { echo "::error::missing commands/start.md"; exit 1; }
-          test -f commands/resume.md             || { echo "::error::missing commands/resume.md"; exit 1; }
-          test -f commands/arsenal.md            || { echo "::error::missing commands/arsenal.md"; exit 1; }
+          test -f .claude-plugin/plugin.json      || { echo "::error::missing .claude-plugin/plugin.json"; exit 1; }
+          test -f .claude-plugin/marketplace.json || { echo "::error::missing .claude-plugin/marketplace.json"; exit 1; }
+          test -f skills/steve-designer/SKILL.md  || { echo "::error::missing skills/steve-designer/SKILL.md"; exit 1; }
+          test -f commands/start.md               || { echo "::error::missing commands/start.md"; exit 1; }
+          test -f commands/resume.md              || { echo "::error::missing commands/resume.md"; exit 1; }
+          test -f commands/arsenal.md             || { echo "::error::missing commands/arsenal.md"; exit 1; }
           for agent in tokens-engineer component-builder design-critic; do
             test -f "agents/${agent}.md" || { echo "::error::missing agents/${agent}.md"; exit 1; }
           done
@@ -59,18 +75,13 @@ jobs:
           done
           echo "Structure OK."
 
-      - name: Dry-run install.sh (project mode)
+      - name: install.sh sanity check
         run: |
+          # install.sh now depends on the `claude` CLI at runtime; we cannot
+          # exercise plugin registration in CI without Claude Code installed.
+          # Instead, validate syntax and that the help/uninstall code paths
+          # parse cleanly.
           set -e
-          TEST_DIR=$(mktemp -d)
-          cd "$TEST_DIR"
-          bash "$GITHUB_WORKSPACE/install.sh" --project
-          test -f .claude/plugins/steve-designer/.claude-plugin/plugin.json
-          test -f .claude/plugins/steve-designer/skills/steve-designer/SKILL.md
-          # Installer should NOT ship repo-meta
-          ! test -e .claude/plugins/steve-designer/.git
-          ! test -e .claude/plugins/steve-designer/docs
-          ! test -e .claude/plugins/steve-designer/LICENSE
-          ! test -e .claude/plugins/steve-designer/README.md
-          ! test -e .claude/plugins/steve-designer/install.sh
-          echo "Install OK."
+          bash -n install.sh
+          bash install.sh --help >/dev/null
+          echo "install.sh OK."

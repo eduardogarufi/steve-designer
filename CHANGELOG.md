@@ -7,19 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (BREAKING)
+- **Install flow completely rewritten.** Claude Code does not auto-discover
+  plugins dropped into `~/.claude/plugins/`; they must be registered via
+  `claude plugin marketplace add` + `claude plugin install`. The previous
+  "copy folder to `~/.claude/plugins/steve-designer`" flow never actually
+  registered commands with Claude Code.
+- `install.sh` no longer copies files. It now:
+  - validates `claude` CLI is on PATH,
+  - registers the plugin as a marketplace (from a local clone or from GitHub),
+  - runs `claude plugin install steve-designer@steve-designer`.
+- New flags: `--local`, `--github`, `--uninstall`. The old `--personal` /
+  `--project` flags are **removed**; users who relied on them need to re-run
+  `./install.sh` (interactive) or pick a new flag.
+- Users who previously manual-copied steve-designer to `~/.claude/plugins/`
+  should remove that directory: `rm -rf ~/.claude/plugins/steve-designer`,
+  then install via the new flow.
+
 ### Added
-- `/steve-designer:arsenal` slash command — checks prerequisites and, on confirmation, installs whatever is missing
-- `check_arsenal.sh --install` flag (with `-y` / `--yes` for non-interactive mode)
-  runs the install commands end-to-end instead of only printing them
-- GitHub Actions CI (plugin.json validation, shellcheck, install.sh dry-run,
-  runs on Node.js 24 via `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`)
-- `CHANGELOG.md`, `CONTRIBUTING.md`
-- Issue templates (bug report, reference request, feature request) and PR template
-- Installer excludes repo-meta (`.git`, `docs`, `LICENSE`, `README.md`, etc.) from installed plugin
+- `.claude-plugin/marketplace.json` — makes the repo a valid Claude Code
+  marketplace (required for registration).
+- `/steve-designer:arsenal` slash command — checks prerequisites and, on
+  confirmation, installs whatever is missing.
+- `check_arsenal.sh --install` flag (with `-y` / `--yes` for non-interactive
+  mode) runs the install commands end-to-end instead of only printing them.
+- GitHub Actions CI: validates `plugin.json` + `marketplace.json`, runs
+  shellcheck, verifies required plugin structure, and syntax-checks
+  `install.sh`. Runs on Node.js 24 via `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+- `CHANGELOG.md`, `CONTRIBUTING.md`.
+- Issue templates (bug report, reference request, feature request) and PR
+  template.
 
 ### Fixed
-- `install.sh` no longer bloats installed plugin with repository metadata
-- Shellcheck SC2034 warnings in `scripts/start_preview.sh` (unused loop vars)
+- Shellcheck SC2034 warnings in `scripts/start_preview.sh` (unused loop vars).
 
 ## [0.1.0] — 2026-04-20
 

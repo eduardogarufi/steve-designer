@@ -1,0 +1,40 @@
+{
+  "name": "steve-designer",
+  "owner": {
+    "name": "Eduardo Garufi",
+    "url": "https://github.com/eduardogarufi"
+  },
+  "metadata": {
+    "description": "Agentic design orchestrator for Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "steve-designer",
+      "source": "./",
+      "description": "Agentic design director that orchestrates discovery, reference synthesis, tokens, build, and polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Eduardo Garufi",
+        "email": "eduardo@capitaltrend.group",
+        "url": "https://github.com/eduardogarufi"
+      },
+      "homepage": "https://github.com/eduardogarufi/steve-designer",
+      "repository": "https://github.com/eduardogarufi/steve-designer",
+      "license": "MIT",
+      "keywords": [
+        "design",
+        "ui",
+        "ux",
+        "design-system",
+        "design-tokens",
+        "orchestration",
+        "frontend",
+        "agentic",
+        "claude-code"
+      ],
+      "category": "design",
+      "strict": false
+    }
+  ]
+}
