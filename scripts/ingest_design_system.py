@@ -78,6 +78,27 @@ def detect_stack(root, packages):
         stype = "tailwind-css"
     return {"type": stype, "framework": framework, "tailwind": tailwind}
 
+EXPORT_RE = re.compile(r"export\s+(?:default\s+)?(?:function|const)\s+([A-Z][A-Za-z0-9]+)")
+PROPS_IFACE_RE = re.compile(r"interface\s+([A-Z][A-Za-z0-9]*Props)\s*\{([^}]*)\}", re.S)
+PROP_NAME_RE = re.compile(r"([A-Za-z0-9]+)\??\s*:")
+
+def detect_components(root):
+    comps = []
+    for path in find_files(root, ["*.tsx", "*.jsx"]):
+        if "/components/" not in path.replace("\\", "/"):
+            continue
+        src = read(path)
+        exports = EXPORT_RE.findall(src)
+        if not exports:
+            continue
+        props_by_iface = {name: PROP_NAME_RE.findall(body) for name, body in PROPS_IFACE_RE.findall(src)}
+        rel = os.path.relpath(path, root).replace("\\", "/")
+        imp = os.path.splitext(rel)[0]
+        for name in exports:
+            props = props_by_iface.get(name + "Props", [])
+            comps.append({"name": name, "import": imp, "props": sorted(set(props))})
+    return comps
+
 def build_manifest(root):
     packages = detect_packages(root)
     tokens = detect_tokens(root)
@@ -86,7 +107,7 @@ def build_manifest(root):
         "generatedAt": "GENERATED",
         "stack": detect_stack(root, packages),
         "tokens": tokens,
-        "components": [],  # filled in Task 2
+        "components": detect_components(root),
         "packages": packages,
         "allowedHex": allowed,
     }

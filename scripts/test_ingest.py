@@ -22,6 +22,17 @@ def test_tailwind_css_tokens_and_stack():
     assert sorted(m["allowedHex"]) == ["#0b0b0c", "#3b82f6"]
     assert m["packages"]["tailwindcss"] == "4.0.0"
 
+def test_shadcn_components():
+    repo = os.path.join(HERE, "fixtures", "repo_shadcn")
+    m = run_ingest(repo)
+    assert m["stack"]["type"] == "shadcn", m["stack"]
+    assert m["stack"]["framework"] == "next"
+    names = {c["name"] for c in m["components"]}
+    assert "Button" in names, names
+    button = next(c for c in m["components"] if c["name"] == "Button")
+    assert sorted(button["props"]) == ["asChild", "size", "variant"], button["props"]
+    assert button["import"].endswith("components/ui/button")
+
 if __name__ == "__main__":
-    test_tailwind_css_tokens_and_stack()
-    print("ok: test_tailwind_css_tokens_and_stack")
+    test_tailwind_css_tokens_and_stack(); print("ok: tailwind_css")
+    test_shadcn_components(); print("ok: shadcn_components")
