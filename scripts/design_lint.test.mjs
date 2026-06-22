@@ -6,6 +6,7 @@ const MANIFEST = new URL("./fixtures/manifest.json", import.meta.url).pathname;
 const bad = new URL("./fixtures/lint_bad_hex.tsx", import.meta.url).pathname;
 const clean = new URL("./fixtures/lint_clean.tsx", import.meta.url).pathname;
 const badSpace = new URL("./fixtures/lint_bad_spacing.tsx", import.meta.url).pathname;
+const badComp = new URL("./fixtures/lint_bad_component.tsx", import.meta.url).pathname;
 
 test("flags a hardcoded hex not in the token system", () => {
   const violations = lintFiles([bad], MANIFEST);
@@ -23,4 +24,10 @@ test("flags a Tailwind arbitrary px value off the spacing scale", () => {
   const v = lintFiles([badSpace], MANIFEST).filter(x => x.rule === "no-off-scale-spacing");
   assert.equal(v.length, 1);
   assert.match(v[0].message, /13px/);
+});
+
+test("flags importing a component not in the whitelist", () => {
+  const v = lintFiles([badComp], MANIFEST).filter(x => x.rule === "no-unknown-component");
+  assert.equal(v.length, 1);
+  assert.match(v[0].message, /StatusCard/);
 });

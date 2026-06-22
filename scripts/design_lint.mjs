@@ -38,6 +38,27 @@ function ruleNoOffScaleSpacing(file, src, manifest) {
   return out;
 }
 
+const UI_IMPORT_RE = /import\s*\{([^}]+)\}\s*from\s*["']([^"']*\/components\/ui\/[^"']+)["']/g;
+
+function ruleNoUnknownComponent(file, src, manifest) {
+  const known = new Set((manifest.components || []).map(c => c.name));
+  // Only enforce when the project actually exposes a component whitelist.
+  if (known.size === 0) return [];
+  const out = [];
+  src.split("\n").forEach((line, i) => {
+    for (const m of line.matchAll(UI_IMPORT_RE)) {
+      const names = m[1].split(",").map(s => s.trim().split(/\s+as\s+/)[0].trim()).filter(Boolean);
+      for (const name of names) {
+        if (/^[A-Z]/.test(name) && !known.has(name)) {
+          out.push({ rule: "no-unknown-component", file, line: i + 1, severity: "error",
+            message: `Component ${name} is not in the design-system inventory. Add it via the DS or use an existing component.` });
+        }
+      }
+    }
+  });
+  return out;
+}
+
 export function lintFiles(files, manifestPath) {
   const manifest = loadManifest(manifestPath);
   const violations = [];
@@ -45,6 +66,7 @@ export function lintFiles(files, manifestPath) {
     const src = fs.readFileSync(file, "utf8");
     violations.push(...ruleNoHardcodedHex(file, src, manifest));
     violations.push(...ruleNoOffScaleSpacing(file, src, manifest));
+    violations.push(...ruleNoUnknownComponent(file, src, manifest));
   }
   return violations;
 }
