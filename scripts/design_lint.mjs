@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
 
 const HEX_RE = /#[0-9a-fA-F]{3,8}\b/g;
 
@@ -69,4 +71,39 @@ export function lintFiles(files, manifestPath) {
     violations.push(...ruleNoUnknownComponent(file, src, manifest));
   }
   return violations;
+}
+
+function parseArgs(argv) {
+  const args = { manifest: "design-system-manifest.json", files: [], changed: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--manifest") args.manifest = argv[++i];
+    else if (a === "--changed") args.changed = true;
+    else args.files.push(a);
+  }
+  return args;
+}
+
+function changedFiles() {
+  const { execSync } = require("node:child_process");
+  const out = execSync("git diff --cached --name-only --diff-filter=ACM", { encoding: "utf8" });
+  return out.split("\n").map(s => s.trim()).filter(Boolean)
+    .filter(f => /\.(tsx|jsx|css)$/.test(f) && fs.existsSync(f));
+}
+
+function isMain() {
+  return process.argv[1] && process.argv[1].endsWith("design_lint.mjs");
+}
+
+if (isMain()) {
+  const args = parseArgs(process.argv.slice(2));
+  const files = args.changed ? changedFiles() : args.files;
+  if (files.length === 0) { console.log("design-lint: no UI files to check — clean."); process.exit(0); }
+  const violations = lintFiles(files, args.manifest);
+  if (violations.length === 0) { console.log(`design-lint: ${files.length} file(s) clean.`); process.exit(0); }
+  for (const v of violations) {
+    console.error(`${v.severity.toUpperCase()} ${v.file}:${v.line} [${v.rule}] ${v.message}`);
+  }
+  console.error(`\ndesign-lint: ${violations.length} violation(s). Build blocked.`);
+  process.exit(1);
 }
