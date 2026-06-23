@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Agentic design orchestrator for Claude Code.",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "steve-designer",
       "source": "./",
       "description": "Agentic design director that orchestrates discovery, reference synthesis, tokens, build, and polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Eduardo Garufi",
         "email": "eduardo@capitaltrend.group",
@@ -31,7 +31,10 @@
         "orchestration",
         "frontend",
         "agentic",
-        "claude-code"
+        "claude-code",
+        "governance",
+        "enforcement",
+        "codex"
       ],
       "category": "design",
       "strict": false

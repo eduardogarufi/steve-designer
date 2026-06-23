@@ -5,6 +5,17 @@ All notable changes to **steve-designer** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.0 — 2026-06-23
+
+### Added — Sheriff Mode (design-system enforcement)
+
+- `/steve-designer:guard` — one-time setup: ingest the DS, generate `AGENTS.md`, install the hard gate (pre-commit + CI), configure ≤3 MCPs for Claude + Codex.
+- `/steve-designer:patrol` — on-demand enforcement: mechanical `design-lint` + `design-enforcer` semantic review.
+- `scripts/ingest_design_system.py` — auto-detects stack (shadcn / own-primitives / tailwind-css) and emits `design-system-manifest.json` (tokens, components+props, packages).
+- `scripts/design_lint.mjs` — blocking linter: no hardcoded hex, no off-scale spacing, no unknown components.
+- `agents/design-enforcer.md`, `hooks/design-lint-hook.sh`, and AGENTS.md / MCP / pre-commit / CI templates.
+- Cross-tool: enforcement lives in git-level artifacts, so it holds in both Claude Code and Codex.
+
 ## [Unreleased]
 
 ### Changed (BREAKING)
