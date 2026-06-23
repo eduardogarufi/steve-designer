@@ -33,6 +33,25 @@ At the end of every phase, append decisions to `design-brief.md` in the project 
 
 ---
 
+## Two modes: Creation vs Sheriff
+
+steve-designer has two modes:
+
+- **Creation mode** (the six phases below) — blank page → shipped UI with real identity.
+- **Sheriff mode** (governance) — keep an *existing* design system faithful during ongoing
+  development, in Claude Code **and** Codex. Use when the project already has tokens,
+  primitives, and packages, and the problem is drift/hallucination, not a missing identity.
+
+Enter Sheriff mode with `/steve-designer:guard` (one-time setup per repo) and
+`/steve-designer:patrol` (review a diff). Sheriff mode is built on portable artifacts —
+`design-system-manifest.json`, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) —
+so the guarantee holds regardless of which agent wrote the code. The skill, commands,
+hook, and `design-enforcer` subagent are the Claude-side convenience layer.
+
+See `references/governance-playbook.md` for the full model.
+
+---
+
 ## Phase 1 — Arsenal Check
 
 **Gate:** User has the essential plugins installed, OR has explicitly chosen to skip and accept degraded mode.
@@ -314,6 +333,7 @@ Read these when the corresponding phase starts. Don't preload all of them.
 - `references/phase-playbook.md` — Each phase expanded with example prompts and edge cases
 - `references/orchestration-map.md` — Full version of the phase-to-tool mapping
 - `references/anti-patterns.md` — What makes output look AI-generic, and how to avoid each
+- `references/governance-playbook.md` — Sheriff mode: enforcement model, severity, stack behavior
 
 ## Agent prompts
 
@@ -322,6 +342,7 @@ Read these when spawning the corresponding subagent:
 - `agents/tokens-engineer.md` — Builds the token system and preview swatch
 - `agents/component-builder.md` — Builds sections with constraints enforced
 - `agents/design-critic.md` — Senior-designer-style critique
+- `agents/design-enforcer.md` — Semantic design-system review (Sheriff mode)
 
 ## Templates
 

@@ -33,6 +33,18 @@ Decision table: given a moment in the workflow, which tool should steve-designer
 
 ---
 
+## Sheriff mode (governance)
+
+| Moment | Primary tool | Notes |
+|--------|--------------|-------|
+| Setup on a repo | `/steve-designer:guard` → `scripts/ingest_design_system.py` | Auto-detects stack |
+| Generate the law | `templates/AGENTS.md.template.md` | Portable; CLAUDE.md points to it |
+| Block violations | `scripts/design_lint.mjs` via pre-commit + CI | Git-level; covers Codex too |
+| In-session catch (Claude) | `hooks/design-lint-hook.sh` | Silent on pass |
+| Semantic review | `agents/design-enforcer.md` via `/steve-designer:patrol` | Props, component choice, drift |
+
+---
+
 ## Decision rules
 
 ### "Should I call a subagent or handle it myself?"

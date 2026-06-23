@@ -1,6 +1,6 @@
 {
   "name": "steve-designer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agentic design orchestrator for Claude Code. Conducts strategic discovery, synthesizes references, defines tokens, then delegates build and polish to specialized subagents and plugins.",
   "author": {
     "name": "Eduardo Garufi",
@@ -19,6 +19,9 @@
     "orchestration",
     "frontend",
     "agentic",
-    "claude-code"
+    "claude-code",
+    "governance",
+    "enforcement",
+    "codex"
   ]
 }

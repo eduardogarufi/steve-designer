@@ -4,6 +4,20 @@ steve-designer does not replace the tools below — it calls them in the right o
 
 **Guiding principle:** Skills > Plugins > MCPs, in that order of preference. MCPs cost tokens every session. Keep 3–5 active MCPs max. Skills initialize at ~100 tokens so more is fine.
 
+## Two arsenals
+
+steve-designer's tools split by mode:
+
+- **Creation arsenal** (Tiers 1–3 below) — for building new UI.
+- **Governance arsenal** (Sheriff mode) — keep ≤3 MCPs active per repo:
+  1. **DS source, stack-aware:** shadcn MCP + private registry *if* the repo is shadcn;
+     otherwise the manifest is built by direct repo read (no MCP).
+  2. **Context7** — correct package APIs at the installed version.
+  3. **Visual verifier** — Playwright or Chrome DevTools, the "see what was built" loop.
+
+  Research caps active MCPs at 3–5; Sheriff mode deliberately runs ≤3. Do not stack the
+  full creation arsenal on top during enforcement work.
+
 ---
 
 ## Tier 1 — Essential (install before first build)

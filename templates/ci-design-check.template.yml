@@ -1,0 +1,18 @@
+name: design-lint
+on:
+  pull_request:
+    paths: ["**/*.tsx", "**/*.jsx", "**/*.css"]
+jobs:
+  design-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Run design-lint on changed files
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          FILES=$(git diff --name-only "$BASE" HEAD -- '*.tsx' '*.jsx' '*.css')
+          if [ -z "$FILES" ]; then echo "No UI files changed."; exit 0; fi
+          node scripts/design_lint.mjs --manifest design-system-manifest.json $FILES

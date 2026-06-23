@@ -1,0 +1,7 @@
+{
+  "stack": { "type": "shadcn" },
+  "tokens": { "color": { "bg-base": "#0b0b0c", "accent": "#3b82f6" }, "spacing": { "1": "4px", "2": "8px" }, "radius": {}, "shadow": {}, "motion": {} },
+  "components": [{ "name": "Button", "import": "@/components/ui/button", "props": ["variant", "size"] }],
+  "packages": {},
+  "allowedHex": ["#0b0b0c", "#3b82f6"]
+}
