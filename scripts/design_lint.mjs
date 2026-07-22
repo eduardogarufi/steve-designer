@@ -40,15 +40,40 @@ function ruleNoOffScaleSpacing(file, src, manifest) {
   return out;
 }
 
-const UI_IMPORT_RE = /import\s*\{([^}]+)\}\s*from\s*["']([^"']*\/components\/ui\/[^"']+)["']/g;
+// Any `import { ... } from "<specifier>"`. The specifier is filtered against the
+// design-system matcher (built from the manifest) so this works for both the
+// greenfield `.../components/ui/...` convention and package specifiers (@scope/ui).
+const IMPORT_RE = /import\s*(?:type\s*)?\{([^}]+)\}\s*from\s*["']([^"']+)["']/g;
+// Legacy fallback for manifests generated before dsImportPrefixes existed.
+const LEGACY_UI_PATH_RE = /^[^"']*\/components\/ui\/[^"']+$/;
+
+// Turn a glob-ish prefix ("@vinci/ui", "@vinci/ui/*", "*/components/ui/*") into a
+// regex that matches a full import specifier.
+function prefixToRegex(prefix) {
+  const escaped = prefix.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("^" + escaped.replace(/\*/g, "[^\"']*") + "$");
+}
+
+function makeDsImportMatcher(manifest) {
+  const prefixes = manifest.dsImportPrefixes || [];
+  if (prefixes.length > 0) {
+    const res = prefixes.map(prefixToRegex);
+    return (spec) => res.some(re => re.test(spec));
+  }
+  // No prefixes declared → legacy behavior (greenfield components/ui/ paths).
+  return (spec) => LEGACY_UI_PATH_RE.test(spec);
+}
 
 function ruleNoUnknownComponent(file, src, manifest) {
   const known = new Set((manifest.components || []).map(c => c.name));
   // Only enforce when the project actually exposes a component whitelist.
   if (known.size === 0) return [];
+  const isDsImport = makeDsImportMatcher(manifest);
   const out = [];
   src.split("\n").forEach((line, i) => {
-    for (const m of line.matchAll(UI_IMPORT_RE)) {
+    for (const m of line.matchAll(IMPORT_RE)) {
+      const spec = m[2];
+      if (!isDsImport(spec)) continue;
       const names = m[1].split(",").map(s => s.trim().split(/\s+as\s+/)[0].trim()).filter(Boolean);
       for (const name of names) {
         if (/^[A-Z]/.test(name) && !known.has(name)) {
@@ -86,9 +111,21 @@ function parseArgs(argv) {
 
 function changedFiles() {
   const { execSync } = require("node:child_process");
-  const out = execSync("git diff --cached --name-only --diff-filter=ACM", { encoding: "utf8" });
-  return out.split("\n").map(s => s.trim()).filter(Boolean)
-    .filter(f => /\.(tsx|jsx|css)$/.test(f) && fs.existsSync(f));
+  const run = (cmd) => {
+    try { return execSync(cmd, { encoding: "utf8" }); }
+    catch { return ""; }
+  };
+  // Working tree = staged + unstaged + untracked. Looking only at the staged
+  // diff gives a false "clean" when real work sits unstaged in the tree.
+  const sources = [
+    run("git diff --cached --name-only --diff-filter=ACM"), // staged
+    run("git diff --name-only --diff-filter=ACM"),          // unstaged (tracked)
+    run("git ls-files --others --exclude-standard"),        // untracked
+  ];
+  const set = new Set(
+    sources.flatMap(o => o.split("\n").map(s => s.trim()).filter(Boolean))
+  );
+  return [...set].filter(f => /\.(tsx|jsx|css)$/.test(f) && fs.existsSync(f));
 }
 
 function isMain() {
@@ -98,7 +135,11 @@ function isMain() {
 if (isMain()) {
   const args = parseArgs(process.argv.slice(2));
   const files = args.changed ? changedFiles() : args.files;
-  if (files.length === 0) { console.log("design-lint: no UI files to check — clean."); process.exit(0); }
+  if (files.length === 0) {
+    const scope = args.changed ? " in the working tree (staged + unstaged + untracked)" : "";
+    console.log(`design-lint: no UI files to check${scope} — clean.`);
+    process.exit(0);
+  }
   const violations = lintFiles(files, args.manifest);
   if (violations.length === 0) { console.log(`design-lint: ${files.length} file(s) clean.`); process.exit(0); }
   for (const v of violations) {

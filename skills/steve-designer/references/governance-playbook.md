@@ -48,11 +48,29 @@ Sometimes a flagged value is intentional. There are two ways to make peace with 
 
 ## Stack-by-stack behavior
 
-INGEST classifies the repo into one of three stacks, and that classification decides which rules have teeth.
+INGEST classifies the repo into one of several stacks, and that classification decides which rules have teeth.
 
 - **shadcn** — a `components.json` is present. Full component whitelist: the inventory is built from the `components/ui` directory, so the no-unknown-component rule is live alongside tokens and spacing. All three mechanical rules enforce.
 - **own-primitives** — no `components.json`, but the repo ships its own component directory (`components/` or `src/components/`) with `.tsx`/`.jsx` exports. The whitelist is derived from that directory. The no-unknown-component rule enforces against the project's own primitives; tokens and spacing enforce as normal.
-- **tailwind-css** — Tailwind with CSS-variable tokens but no component whitelist to derive. The no-unknown-component rule is **inert** (it only fires when a whitelist exists), so enforcement is tokens + spacing only. `guard` says this out loud at setup so the absence of component blocking is expected, not a silent gap.
+- **token-css** — a token-based system (CSS custom properties / a `tokens.ts`) with **no Tailwind**. `tailwind` is `false`; the type is never `tailwind-css` in this case (that contradiction was a bug). If the design system is a workspace package (e.g. `@scope/ui`) the whitelist is derived from its real exports and the no-unknown-component rule enforces against package imports (`@scope/ui`, `@scope/ui/*`).
+- **tailwind-css** — real Tailwind (the `tailwindcss` dependency, a `tailwind.config.*`, or a CSS `@import "tailwindcss"`). If there is no component whitelist to derive, the no-unknown-component rule is **inert** (it only fires when a whitelist exists), so enforcement is tokens + spacing only. `guard` says this out loud at setup.
+- **css-modules** — no Tailwind, no tokens, no component library detected. Only the rules with data enforce.
+
+---
+
+## Brownfield & configuration
+
+Sheriff mode must adapt to a **running** project, not just a greenfield one. Two mechanisms make that possible.
+
+**Configurable DS sources.** By default INGEST auto-detects the design system by scanning `package.json` workspaces for a package whose `exports` map points at `.tsx` files (a component library like `@vinci/ui`) and by looking for the `components/ui/` convention. When auto-detection is wrong or the DS lives somewhere unusual, declare it explicitly in a `steve.config.json` at the repo root (or a `steveDesigner` field in `package.json`):
+
+```json
+{ "dsSources": [ { "dir": "packages/ui/src/**", "package": "@scope/ui" } ] }
+```
+
+Each source has a `dir` (glob to scan for component files) and/or a `package` (the import specifier used for those components). Components are extracted from real exports (`export function|const <PascalCase>`), and the linter's import matcher is emitted into the manifest as `dsImportPrefixes` (e.g. `["@scope/ui", "@scope/ui/*"]`), so `no-unknown-component` works against package imports, not only `components/ui/` paths.
+
+**Non-destructive guard.** On a repo that already has an `AGENTS.md`, a customized `scripts/design_lint.mjs`, or a hand-tuned manifest whitelist, `guard` **merges or skips** — it never overwrites the constitution. It detects brownfield, preserves existing entries, appends rather than replaces, and reports every create/merge/skip decision. The manifest merge preserves human-added components, tokens, and `allowedHex` that the detector didn't find.
 
 ---
 

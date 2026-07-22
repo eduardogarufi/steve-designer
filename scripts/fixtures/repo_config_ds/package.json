@@ -1,0 +1,5 @@
+{
+  "name": "custom-app",
+  "private": true,
+  "dependencies": { "vite": "5.0.0" }
+}

@@ -1,0 +1,11 @@
+{
+  "stack": { "type": "token-css", "tailwind": false },
+  "tokens": { "color": { "accent": "#3b82f6" }, "spacing": { "1": "4px" }, "radius": {}, "shadow": {}, "motion": {} },
+  "components": [
+    { "name": "UiButton", "import": "@vinci/ui/primitives", "props": ["variant", "size"] },
+    { "name": "UiPanel", "import": "@vinci/ui/primitives", "props": [] }
+  ],
+  "dsImportPrefixes": ["@vinci/ui", "@vinci/ui/*"],
+  "packages": {},
+  "allowedHex": ["#3b82f6"]
+}

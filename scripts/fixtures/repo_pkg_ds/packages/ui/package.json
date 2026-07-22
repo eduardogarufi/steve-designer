@@ -1,0 +1,9 @@
+{
+  "name": "@acme/ui",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./*": "./src/*.tsx",
+    "./tokens": "./src/tokens.ts"
+  }
+}

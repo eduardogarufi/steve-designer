@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Brownfield support (Sheriff Mode works on existing repos)
+- **Configurable design-system sources.** `ingest_design_system.py` reads an optional `steve.config.json` (or a `steveDesigner` field in `package.json`) with `dsSources` (`{dir, package}`), and otherwise auto-detects workspace-package design systems (a package whose `exports` map points at `.tsx`, e.g. `@vinci/ui`) in addition to the greenfield `components/ui/` convention. Components are extracted from real exports (`export function|const <PascalCase>`), not a fixed path.
+- **`dsImportPrefixes` in the manifest.** The ingester emits the import matcher (e.g. `["@vinci/ui", "@vinci/ui/*"]`); `design_lint.mjs` builds `no-unknown-component` from it, so the rule now enforces against package specifiers, not only `components/ui/` paths. Legacy manifests without the field fall back to the old path matcher.
+
+### Fixed
+- **Stack detection contradiction.** A token-based repo with no Tailwind is now classified `token-css` (or `css-modules`) with `tailwind: false`, instead of the impossible `tailwind-css` + `tailwind: false`. Tailwind is only asserted on a real signal (dependency, `tailwind.config.*`, or a CSS `@import "tailwindcss"`).
+- **`--changed` false-green.** It now scans the whole working tree (staged **+** unstaged **+** untracked) instead of only the staged diff, so uncommitted work can no longer slip through as "clean".
+- **Destructive `guard`.** On brownfield repos `guard` now merges or skips `AGENTS.md`, `CLAUDE.md`, `scripts/design_lint.mjs`, the pre-commit hook, CI, `.mcp.json`, and the manifest whitelist — never clobbering an existing constitution — and reports every create/merge/skip decision.
+- **Silent critique agents.** `design-enforcer` and `design-critic` now carry a hard output contract: the final message IS the report (empty/"Done." = failure), and they also write it to an `OUTPUT_FILE` that `patrol` reads as a durable fallback.
+
 ### Changed (BREAKING)
 - **Install flow completely rewritten.** Claude Code does not auto-discover
   plugins dropped into `~/.claude/plugins/`; they must be registered via
