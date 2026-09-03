@@ -138,3 +138,14 @@ README em inglês reescrito: três modos, oito comandos, exemplos, estrutura `do
 - Rename quebra hábito de quem usa `guard`/`patrol`: mitigado no CHANGELOG e no `help`.
 - Mover manifesto e brief para `docs/design/`: fallback para os paths antigos em todos os leitores.
 - `no-literal-jsx-string` pode dar falso positivo: por isso só liga com i18n declarado.
+
+## 13. Rulings do gate de design (Codex MCP, thread `01a0694c-be09-7a90-8d61-275d9ba957ac`, 2026-09-03)
+
+O Codex divergiu com seis riscos. Todos aceitos; as regras abaixo **prevalecem** sobre o texto anterior onde conflitarem.
+
+1. **Resolução de paths (manifesto e brief).** Ordem única em todos os leitores e escritores (`design_lint.mjs`, `ingest_design_system.py`, `init_project_brief.py`, hook, pre-commit, CI, comandos): flag explícita → `docs/design/<novo>` se existir → path legado na raiz se existir → `docs/design/<novo>` para criação. Se **ambos** existirem, falhar com diagnóstico que nomeia os dois; nunca escolher em silêncio. O `ingest` ganha `--manifest` (alias de `--out`) e cria `docs/design/` quando necessário.
+2. **Manifesto v2.** Função de normalização `string | {value, role}` usada por ingest e lint; `schemaVersion: 2` emitido; `allowedHex` derivado de `color[*].value` e de todos os campos de `feedback[*]`; validação de `role` só quando presente. Testes cobrem v1, v2 e misto.
+3. **`no-literal-jsx-string`.** Sem regex sobre o arquivo cru. Um lexer pequeno mascara comentários, strings e templates, acompanha profundidade de JSX e de `{}`, e só então examina texto em corpo JSX e nos atributos `placeholder|title|aria-label|alt`. Caso ambíguo **não** é reportado (regra conservadora; falso negativo é preferível a bloqueio errado). Exclusões: `*.test.*`, `*.spec.*`, `*.stories.*`. Com `i18n.enabled=false` o `design-enforcer` revisa **voz**, não exige chave i18n (corrige §7).
+4. **`check`: resolvedor único de escopo.** `design_lint.mjs` exporta `resolveScope({changed|commit|range|pr})` → `{base, head, files, diff}`; flags mutuamente exclusivas; erro de git ou revisão inválida **falha fechado** (exit ≠ 0, nunca "clean"); working tree = staged + unstaged + untracked; commit trata root commit; range é `a..b` literal; arquivos filtrados por `--diff-filter=ACMR`. Enforcer e critic recebem o mesmo `{files, diff}`.
+5. **`--pr`.** Resolve `baseRefOid`/`headRefOid` via `gh pr view`; exige `HEAD == headRefOid`, senão falha com a instrução exata de checkout. Sem checkout implícito. `gh` ausente ou não autenticado é erro.
+6. **Aliases depreciados.** `commands/guard.md` e `commands/patrol.md` permanecem na série 0.3.x como aliases finos: avisam a depreciação e executam `enforce`/`check`. Corrige §3 ("são removidos"). Remoção fica para 0.4.
