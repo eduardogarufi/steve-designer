@@ -1,17 +1,20 @@
 {
-  "generatedAt": "2026-06-23T00:00:00Z",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-03T00:00:00Z",
   "stack": { "type": "shadcn|tailwind-css|token-css|own-primitives|css-modules", "framework": "next|vite|astro|unknown", "tailwind": true },
   "tokens": {
-    "color":   { "bg-base": "#0b0b0c", "accent": "#3b82f6" },
-    "spacing": { "1": "4px", "2": "8px" },
-    "radius":  { "sm": "4px" },
-    "shadow":  { "sm": "0 1px 2px rgba(0,0,0,.06)" },
-    "motion":  { "fast": "120ms" }
+    "color": { "bg-base": { "value": "#080b12", "role": "background" }, "accent": { "value": "#3b82f6", "role": "accent" } },
+    "feedback": { "success": { "solid": "#10b981", "fg": "#34d399", "subtle": "rgba(16,185,129,.12)" } },
+    "typography": { "h1": { "size": "2.5rem", "lineHeight": "1.1", "weight": "700", "tracking": "-0.02em", "family": "sans" } },
+    "spacing": { "1": "4px", "2": "8px" }, "radius": { "sm": "4px" },
+    "shadow": { "sm": "0 1px 2px rgba(0,0,0,.06)" }, "motion": { "fast": "120ms" },
+    "zIndex": { "dropdown": 100, "modal": 1000, "dropdown-in-modal": 1050, "toast": 1100 },
+    "breakpoints": { "sm": "480px", "md": "768px", "lg": "1024px", "xl": "1280px" }
   },
-  "components": [
-    { "name": "Button", "import": "@/components/ui/button", "props": ["variant", "size", "asChild"] }
-  ],
+  "components": [{ "name": "Button", "import": "@/components/ui/button", "props": ["variant", "size", "asChild"], "states": ["default", "hover", "focus", "disabled", "loading"], "a11y": ["aria-busy", "hit>=44px"] }],
+  "i18n": { "enabled": false, "keyPattern": "<area>.<screen>.<element>", "source": "src/lib/i18n/pt-BR.json" },
+  "voice": { "tone": "", "locale": "" },
   "dsImportPrefixes": ["*/components/ui/*", "@scope/ui", "@scope/ui/*"],
   "packages": { "next": "15.0.0", "tailwindcss": "4.0.0" },
-  "allowedHex": ["#0b0b0c", "#3b82f6"]
+  "allowedHex": ["#080b12", "#3b82f6", "#10b981", "#34d399"]
 }

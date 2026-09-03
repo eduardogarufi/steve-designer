@@ -29,7 +29,7 @@ If items are missing, ask the user:
 After a successful install:
 
 1. Remind the user: **"Restart Claude Code so the new plugins/MCPs register."**
-2. Suggest: "Once restarted, run `/steve-designer:start` to begin, or `/steve-designer:resume` if you have an existing `design-brief.md`."
+2. Suggest: "Once restarted, run `/steve-designer:start` to begin from zero, `/steve-designer:resume` if a brief already exists (`docs/design/brief.md`, or the legacy `design-brief.md`), or `/steve-designer:enforce` to govern an existing project."
 
 If any command failed, list the failures and suggest running them manually.
 

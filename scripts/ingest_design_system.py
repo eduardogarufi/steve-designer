@@ -17,9 +17,41 @@ Either key may be omitted. Components are extracted from real exports
 (`export function|const <PascalCase>`), not from a fixed path.
 """
 import argparse, glob, json, os, re, sys
+from steve_paths import StevePathError, ensure_parent_dir, resolve_manifest_path
 
 CSS_VAR_RE = re.compile(r"--([a-z0-9-]+)\s*:\s*([^;]+);", re.I)
 HEX_RE = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+
+ROLE_HINTS = (
+    (("bg", "background"), "background"),
+    (("surface", "card", "popover", "muted"), "surface"),
+    (("fg", "foreground", "text", "heading"), "text"),
+    (("accent", "primary"), "accent"),
+    (("border", "input"), "border"),
+    (("ring",), "ring"),
+    (("brand", "navy"), "brand"),
+)
+
+
+def color_value(entry):
+    """v1 colors are strings; v2 colors are {"value": ..., "role": ...}."""
+    return str(entry.get("value", "")) if isinstance(entry, dict) else str(entry or "")
+
+
+def derive_allowed_hex(tokens):
+    """Every hex the system owns: core colors plus every feedback slot."""
+    values = [color_value(entry) for entry in tokens.get("color", {}).values()]
+    for group in tokens.get("feedback", {}).values():
+        values.extend(str(value) for value in group.values()) if isinstance(group, dict) else values.append(str(group))
+    return sorted({match.lower() for value in values for match in HEX_RE.findall(value)})
+
+
+def infer_color_role(name):
+    parts = set(re.split(r"[-_]", name.lower()))
+    for hints, role in ROLE_HINTS:
+        if any(hint in parts for hint in hints):
+            return role
+    return None
 
 def read(path):
     try:
@@ -34,26 +66,84 @@ def find_files(root, patterns):
         out += glob.glob(os.path.join(root, "**", pat), recursive=True)
     return [p for p in out if "node_modules" not in p]
 
+FEEDBACK_KEYS = {"success": "success", "warning": "warning", "danger": "danger", "error": "danger", "info": "info"}
+FEEDBACK_SLOTS = {"": "solid", "fg": "fg", "subtle": "subtle"}
+TYPO_ATTRS = [("letter-spacing", "tracking"), ("line-height", "lineHeight"), ("tracking", "tracking"), ("leading", "lineHeight"), ("weight", "weight"), ("family", "family"), ("size", "size"), ("lh", "lineHeight")]
+
+
+def _classify_feedback(name):
+    base = name[len("color-"):] if name.startswith("color-") else name
+    for suffix, slot in (("-fg", "fg"), ("-subtle", "subtle")):
+        if base.endswith(suffix):
+            key = FEEDBACK_KEYS.get(base[:-len(suffix)])
+            return (key, slot) if key else None
+    key = FEEDBACK_KEYS.get(base)
+    return (key, "solid") if key else None
+
+
+def _classify_typography(name):
+    for prefix, default_attr in (("text-", "size"), ("font-", "family")):
+        if not name.startswith(prefix):
+            continue
+        rest = name[len(prefix):]
+        for suffix, attr in TYPO_ATTRS:
+            if rest.endswith("-" + suffix):
+                role = rest[:-(len(suffix) + 1)]
+                return (role, attr) if role else None
+        return (rest, default_attr) if rest else None
+    return None
+
+
 def classify_token(name):
-    if name.startswith("color-") or name.startswith("color"):
-        return ("color", name[len("color-"):] if name.startswith("color-") else name)
+    """Return (bucket, key, slot); slot is feedback/typography-specific."""
+    feedback = _classify_feedback(name)
+    if feedback:
+        return ("feedback", feedback[0], feedback[1])
+    typography = _classify_typography(name)
+    if typography:
+        return ("typography", typography[0], typography[1])
+    if name.startswith("z-"):
+        return ("zIndex", name[2:], None)
+    if name.startswith("breakpoint-"):
+        return ("breakpoints", name[len("breakpoint-"):], None)
+    if name.startswith("bp-"):
+        return ("breakpoints", name[3:], None)
+    if name.startswith("color-"):
+        return ("color", name[len("color-"):], None)
+    if name.startswith("color"):
+        return ("color", name, None)
     if name.startswith("space-") or name.startswith("spacing-"):
-        return ("spacing", name.split("-", 1)[1])
+        return ("spacing", name.split("-", 1)[1], None)
     if name.startswith("radius-"):
-        return ("radius", name.split("-", 1)[1])
+        return ("radius", name.split("-", 1)[1], None)
     if name.startswith("shadow-"):
-        return ("shadow", name.split("-", 1)[1])
+        return ("shadow", name.split("-", 1)[1], None)
     if name.startswith("motion-") or name.startswith("duration-") or name.startswith("ease-"):
-        return ("motion", name.split("-", 1)[1])
-    return (None, name)
+        return ("motion", name.split("-", 1)[1], None)
+    return (None, name, None)
+
+
+def _coerce_z(value):
+    value = value.strip()
+    return int(value) if value.lstrip("-").isdigit() else value
 
 def detect_tokens(root):
-    tokens = {"color": {}, "spacing": {}, "radius": {}, "shadow": {}, "motion": {}}
+    tokens = {"color": {}, "feedback": {}, "typography": {}, "spacing": {}, "radius": {}, "shadow": {}, "motion": {}, "zIndex": {}, "breakpoints": {}}
     for css in find_files(root, ["*.css"]):
         for name, value in CSS_VAR_RE.findall(read(css)):
-            bucket, short = classify_token(name.lower())
-            if bucket:
-                tokens[bucket][short] = value.strip()
+            bucket, key, slot = classify_token(name.lower())
+            if not bucket:
+                continue
+            value = value.strip()
+            if bucket in ("feedback", "typography"):
+                tokens[bucket].setdefault(key, {})[slot] = value
+            elif bucket == "zIndex":
+                tokens[bucket][key] = _coerce_z(value)
+            elif bucket == "color":
+                role = infer_color_role(key)
+                tokens[bucket][key] = {"value": value, "role": role} if role else value
+            else:
+                tokens[bucket][key] = value
     return tokens
 
 def load_json(path):
@@ -73,6 +163,17 @@ def detect_packages(root):
     deps.update(data.get("dependencies", {}))
     deps.update(data.get("devDependencies", {}))
     return {k: str(v).lstrip("^~") for k, v in deps.items()}
+
+I18N_PACKAGES = ("next-intl", "i18next", "react-i18next", "@lingui/core", "@lingui/react", "lingui")
+DEFAULT_KEY_PATTERN = "<area>.<screen>.<element>"
+
+
+def detect_i18n(root, config):
+    cfg = (config or {}).get("i18n")
+    if isinstance(cfg, dict):
+        return {"enabled": bool(cfg.get("enabled", True)), "keyPattern": cfg.get("keyPattern", DEFAULT_KEY_PATTERN), "source": cfg.get("source", "")}
+    packages = detect_packages(root)
+    return {"enabled": any(package in packages for package in I18N_PACKAGES), "keyPattern": DEFAULT_KEY_PATTERN, "source": ""}
 
 def has_tailwind(root, packages):
     """Real Tailwind = a positive signal, not the mere absence of anything else.
@@ -241,6 +342,13 @@ def detect_components(root, config):
                     continue
                 seen.add(key)
                 comps.append(comp)
+    overrides = (config or {}).get("components") or {}
+    for comp in comps:
+        extra = overrides.get(comp["name"]) or {}
+        if extra.get("states"):
+            comp["states"] = list(extra["states"])
+        if extra.get("a11y"):
+            comp["a11y"] = list(extra["a11y"])
     return comps, prefixes
 
 def build_manifest(root):
@@ -248,12 +356,15 @@ def build_manifest(root):
     packages = detect_packages(root)
     tokens = detect_tokens(root)
     components, ds_prefixes = detect_components(root, config)
-    allowed = sorted({h.lower() for v in tokens["color"].values() for h in HEX_RE.findall(v)})
+    allowed = derive_allowed_hex(tokens)
     return {
+        "schemaVersion": 2,
         "generatedAt": "GENERATED",
         "stack": detect_stack(root, packages, tokens, components),
         "tokens": tokens,
         "components": components,
+        "i18n": detect_i18n(root, config),
+        "voice": (config or {}).get("voice", {}),
         "dsImportPrefixes": ds_prefixes,
         "packages": packages,
         "allowedHex": allowed,
@@ -264,16 +375,25 @@ def main():
     ap.add_argument("--root", required=True)
     ap.add_argument("--stdout", action="store_true")
     ap.add_argument("--out")
+    ap.add_argument("--manifest", help="alias of --out; manifest path to write")
     args = ap.parse_args()
     if not os.path.isdir(args.root):
         print(f"root not found: {args.root}", file=sys.stderr)
         return 1
     manifest = build_manifest(args.root)
     text = json.dumps(manifest, indent=2)
-    if args.out:
-        with open(args.out, "w", encoding="utf-8") as f:
+    explicit = args.out or args.manifest
+    if explicit or not args.stdout:
+        try:
+            out_path = resolve_manifest_path(explicit, args.root)
+        except StevePathError as exc:
+            print(f"ingest: {exc}", file=sys.stderr)
+            return 1
+        ensure_parent_dir(out_path)
+        with open(out_path, "w", encoding="utf-8") as f:
             f.write(text + "\n")
-    if args.stdout or not args.out:
+        print(f"wrote {out_path}", file=sys.stderr)
+    if args.stdout:
         print(text)
     return 0
 

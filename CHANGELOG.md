@@ -5,6 +5,97 @@ All notable changes to **steve-designer** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.0 — 2026-09-03
+
+### Added — Steve owns the UI design system (Governance renamed, Direction mode)
+
+- **BREAKING renames.** `/steve-designer:guard` → `/steve-designer:enforce`,
+  `/steve-designer:patrol` → `/steve-designer:check`. The old names remain as thin
+  deprecation-warning aliases (`commands/guard.md`, `commands/patrol.md`) through the
+  0.3.x series; removed in 0.4.0.
+- **`/steve-designer:build`** — Direction mode: Steve reads the manifest and design doc,
+  assembles the screen contract (allowed components, required states, tokens by role,
+  i18n keys, "cravado" rules), and builds or conforms the screen via `component-builder`.
+  Ends by running `check`.
+- **`/steve-designer:handoff`** — the same contract as `build`, delivered as a prompt for
+  an external executor (Claude, Codex, v0, Lovable, a human), saved under
+  `docs/design/handoffs/<date>-<screen>.md`.
+- **`/steve-designer:help`** — prints `skills/steve-designer/references/capabilities.md`
+  verbatim, the canonical machine-and-human-readable capability map; also serves
+  `AGENTS.md` and any agent reading Steve's contract cold.
+- **`docs/design/` as the canonical documentation home**, replacing scattered root-level
+  artifacts: `design-doc.md`, `brief.md`, `manifest.json`, `contrast.md`, `screens.md`,
+  `decisions.md`, `handoffs/`. Legacy root paths (`design-brief.md`,
+  `design-system-manifest.json`) are still resolved as a fallback via the new
+  `scripts/steve_paths.py`; if both a legacy and a `docs/design/` path exist, every
+  command stops and names both rather than guessing.
+- **Manifest `schemaVersion: 2`.** Adds `tokens.feedback`, `tokens.typography`,
+  `tokens.zIndex`, `tokens.breakpoints` to the token inventory.
+- **BREAKING — feedback token routing moved.** `tokens.color.*` no longer carries
+  feedback colors (success/warning/error/info); they now live under
+  `tokens.feedback.*`. `design_lint.mjs` reads `tokens.feedback` for v2 manifests and
+  falls back to the old `tokens.color` location for v1 manifests, but a v2 manifest
+  written with feedback colors still under `tokens.color` will not be recognized as
+  feedback tokens.
+- **`no-literal-jsx-string` lint rule** — flags literal JSX text and literal i18n
+  attributes, active only when `manifest.i18n.enabled === true`.
+- **Scoped `/steve-designer:check`.** Four scopes: working tree (default, staged +
+  unstaged + untracked), `--commit <sha>`, `--range <a>..<b>`, `--pr <n>` (resolved via
+  `gh pr view`; requires local `HEAD` to equal the PR's `headRefOid`, or it fails with
+  the exact checkout instruction — it never checks out the PR for you). Layers: lint
+  (blocks) → `design-enforcer` (severity-rated findings) → `design-critic` visual pass
+  when a preview URL is available or `--visual` is passed.
+- **Exit codes 0/1/2 for `design_lint.mjs`**: `0` clean, `1` violations found (build
+  blocked), `2` scope/manifest resolution error (e.g. two manifests present).
+- **`agents/design-enforcer.md`** — reviews a UI diff against the manifest and
+  `AGENTS.md` for violations the mechanical linter cannot catch (wrong component choice,
+  token used in the wrong semantic role, invented prop, drift from the synthesis
+  statement). Read-only; reports severity, does not edit.
+- **New templates**: `templates/design-system-manifest.template.json`,
+  `skills/steve-designer/templates/design-doc.template.md`,
+  `skills/steve-designer/templates/decisions.template.md`,
+  `skills/steve-designer/templates/handoff.template.md`,
+  `skills/steve-designer/templates/screens.template.md`.
+- **New reference**: `skills/steve-designer/references/capabilities.md`, the canonical
+  command/artifact map served verbatim by `/help`.
+- **`design_lint.mjs --manifest`** flag to point at an explicit manifest path, on top of
+  the existing resolution order.
+- **`ingest_design_system.py --manifest`** as an alias of `--out`.
+- **CI: optional axe accessibility check** in `templates/ci-design-check.template.yml`
+  for projects that adopt the gate.
+- **`design_lint.mjs --version`** prints `design-lint 0.3.0`. `/steve-designer:check` and
+  `/steve-designer:enforce` run this handshake before touching a new scope, and refuse (or
+  offer to update the vendored copy) on anything older.
+- **`design_lint.mjs --emit-scope <path>`** writes the resolved scope as JSON
+  (`{mode, base, head, files, diff, manifest, lintVersion}`) so `check` resolves the scope
+  once and its `design-enforcer`/`design-critic` layers read the same snapshot instead of
+  re-running `git diff`.
+- **Fail-closed flag parsing.** An unknown flag, a flag missing its value, or two scope
+  flags passed together now exits `2` (configuration/scope failure) instead of silently
+  misparsing.
+- **Atomic manifest/brief migration in `enforce`.** A legacy-root file with no
+  `docs/design/` counterpart is moved with `git mv` before INGEST runs; if both exist,
+  `enforce` stops, shows the diff, and asks the user to choose instead of leaving both in
+  place.
+- **`docs/design/capabilities.md`** — `enforce` now copies
+  `skills/steve-designer/references/capabilities.md` into every governed project, so any
+  agent can read Steve's capability map without the plugin. `AGENTS.md` and every other
+  in-project pointer now target this copy; `/steve-designer:help` still prints the
+  plugin's source copy.
+- **Closed lint bypasses**: multi-line imports, string literals inside `{"..."}`
+  expressions, and string literals in JSX attributes no longer slip past
+  `no-unknown-component` / `no-literal-jsx-string`.
+
+### Changed
+
+- `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` description now
+  reflects the three modes and "owns the UI design system of any project" instead of
+  only the Creation flow.
+- CI (`.github/workflows/ci.yml`) now installs Node.js 20 via `actions/setup-node@v4`
+  and runs `node --test scripts/design_lint.test.mjs scripts/design_lint.cli.test.mjs`
+  and `python3 scripts/test_ingest.py`, and the structure check verifies the current 10
+  commands and 4 agents instead of the original 3-command, 3-agent set.
+
 ## 0.2.0 — 2026-06-23
 
 ### Added — Sheriff Mode (design-system enforcement)
@@ -16,17 +107,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `agents/design-enforcer.md`, `hooks/design-lint-hook.sh`, and AGENTS.md / MCP / pre-commit / CI templates.
 - Cross-tool: enforcement lives in git-level artifacts, so it holds in both Claude Code and Codex.
 
-## [Unreleased]
-
-### Added — Brownfield support (Sheriff Mode works on existing repos)
+### Added — Brownfield support (Governance works on existing repos)
 - **Configurable design-system sources.** `ingest_design_system.py` reads an optional `steve.config.json` (or a `steveDesigner` field in `package.json`) with `dsSources` (`{dir, package}`), and otherwise auto-detects workspace-package design systems (a package whose `exports` map points at `.tsx`, e.g. `@vinci/ui`) in addition to the greenfield `components/ui/` convention. Components are extracted from real exports (`export function|const <PascalCase>`), not a fixed path.
 - **`dsImportPrefixes` in the manifest.** The ingester emits the import matcher (e.g. `["@vinci/ui", "@vinci/ui/*"]`); `design_lint.mjs` builds `no-unknown-component` from it, so the rule now enforces against package specifiers, not only `components/ui/` paths. Legacy manifests without the field fall back to the old path matcher.
 
 ### Fixed
 - **Stack detection contradiction.** A token-based repo with no Tailwind is now classified `token-css` (or `css-modules`) with `tailwind: false`, instead of the impossible `tailwind-css` + `tailwind: false`. Tailwind is only asserted on a real signal (dependency, `tailwind.config.*`, or a CSS `@import "tailwindcss"`).
 - **`--changed` false-green.** It now scans the whole working tree (staged **+** unstaged **+** untracked) instead of only the staged diff, so uncommitted work can no longer slip through as "clean".
-- **Destructive `guard`.** On brownfield repos `guard` now merges or skips `AGENTS.md`, `CLAUDE.md`, `scripts/design_lint.mjs`, the pre-commit hook, CI, `.mcp.json`, and the manifest whitelist — never clobbering an existing constitution — and reports every create/merge/skip decision.
-- **Silent critique agents.** `design-enforcer` and `design-critic` now carry a hard output contract: the final message IS the report (empty/"Done." = failure), and they also write it to an `OUTPUT_FILE` that `patrol` reads as a durable fallback.
+- **Destructive `guard`/`enforce`.** On brownfield repos `enforce` (née `guard`) now merges or skips `AGENTS.md`, `CLAUDE.md`, `scripts/design_lint.mjs`, the pre-commit hook, CI, `.mcp.json`, and the manifest whitelist — never clobbering an existing constitution — and reports every create/merge/skip decision.
+- **Silent critique agents.** `design-enforcer` and `design-critic` now carry a hard output contract: the final message IS the report (empty/"Done." = failure), and they also write it to an `OUTPUT_FILE` that `check` (née `patrol`) reads as a durable fallback.
 
 ### Changed (BREAKING)
 - **Install flow completely rewritten.** Claude Code does not auto-discover
@@ -76,5 +165,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT license, plugin manifest (`.claude-plugin/plugin.json`)
 - Installer with `--personal` / `--project` modes
 
-[Unreleased]: https://github.com/eduardogarufi/steve-designer/compare/v0.1.0...HEAD
+[0.3.0]: https://github.com/eduardogarufi/steve-designer/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/eduardogarufi/steve-designer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/eduardogarufi/steve-designer/releases/tag/v0.1.0

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Installed by steve-designer Sheriff Mode at .git/hooks/pre-commit (or via husky/lefthook).
+# Installed by steve-designer at .git/hooks/pre-commit (or via husky/lefthook).
 # Blocks commits that violate the design system.
 set -euo pipefail
-MANIFEST="${DESIGN_MANIFEST:-design-system-manifest.json}"
-if [ ! -f "$MANIFEST" ]; then
-  echo "design-lint: no manifest ($MANIFEST) — run /steve-designer:guard. Skipping."
+ROOT="$(git rev-parse --show-toplevel)"
+if [ -n "${DESIGN_MANIFEST:-}" ]; then
+  exec node "$ROOT/scripts/design_lint.mjs" --manifest "$DESIGN_MANIFEST" --changed
+fi
+if [ ! -f "$ROOT/docs/design/manifest.json" ] && [ ! -f "$ROOT/design-system-manifest.json" ]; then
+  echo "design-lint: no manifest — run /steve-designer:enforce. Skipping."
   exit 0
 fi
-node "$(git rev-parse --show-toplevel)/scripts/design_lint.mjs" --manifest "$MANIFEST" --changed
+exec node "$ROOT/scripts/design_lint.mjs" --changed

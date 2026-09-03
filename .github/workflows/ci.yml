@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Validate plugin + marketplace manifests
         run: |
           python3 - <<'PY'
@@ -67,13 +72,26 @@ jobs:
           test -f commands/start.md               || { echo "::error::missing commands/start.md"; exit 1; }
           test -f commands/resume.md              || { echo "::error::missing commands/resume.md"; exit 1; }
           test -f commands/arsenal.md             || { echo "::error::missing commands/arsenal.md"; exit 1; }
-          for agent in tokens-engineer component-builder design-critic; do
+          test -f commands/enforce.md             || { echo "::error::missing commands/enforce.md"; exit 1; }
+          test -f commands/check.md               || { echo "::error::missing commands/check.md"; exit 1; }
+          test -f commands/build.md               || { echo "::error::missing commands/build.md"; exit 1; }
+          test -f commands/handoff.md             || { echo "::error::missing commands/handoff.md"; exit 1; }
+          test -f commands/help.md                || { echo "::error::missing commands/help.md"; exit 1; }
+          test -f commands/guard.md               || { echo "::error::missing commands/guard.md"; exit 1; }
+          test -f commands/patrol.md              || { echo "::error::missing commands/patrol.md"; exit 1; }
+          for agent in tokens-engineer component-builder design-critic design-enforcer; do
             test -f "agents/${agent}.md" || { echo "::error::missing agents/${agent}.md"; exit 1; }
           done
-          for script in check_arsenal.sh init_project_brief.py start_preview.sh; do
+          for script in check_arsenal.sh init_project_brief.py start_preview.sh ingest_design_system.py design_lint.mjs steve_paths.py; do
             test -f "scripts/${script}" || { echo "::error::missing scripts/${script}"; exit 1; }
           done
           echo "Structure OK."
+
+      - name: Run design_lint tests
+        run: node --test scripts/design_lint.test.mjs scripts/design_lint.cli.test.mjs
+
+      - name: Run ingest_design_system tests
+        run: python3 scripts/test_ingest.py
 
       - name: install.sh sanity check
         run: |

@@ -10,8 +10,17 @@ case "$FILE" in
 esac
 ROOT="$(git -C "$(dirname "$FILE")" rev-parse --show-toplevel 2>/dev/null || true)"
 [ -z "$ROOT" ] && exit 0
-MANIFEST="$ROOT/design-system-manifest.json"
-[ -f "$MANIFEST" ] || exit 0
+MANIFEST=""
+if [ -f "$ROOT/docs/design/manifest.json" ] && [ -f "$ROOT/design-system-manifest.json" ]; then
+  echo "design-lint: both docs/design/manifest.json and design-system-manifest.json exist — resolve the ambiguity." >&2
+  exit 2
+elif [ -f "$ROOT/docs/design/manifest.json" ]; then
+  MANIFEST="$ROOT/docs/design/manifest.json"
+elif [ -f "$ROOT/design-system-manifest.json" ]; then
+  MANIFEST="$ROOT/design-system-manifest.json"
+else
+  exit 0
+fi
 if ! OUT="$(node "$ROOT/scripts/design_lint.mjs" --manifest "$MANIFEST" "$FILE" 2>&1)"; then
   echo "design-lint blocked this edit:" >&2
   echo "$OUT" >&2

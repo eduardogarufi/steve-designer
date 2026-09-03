@@ -1,6 +1,6 @@
 ---
 name: steve-designer
-description: Agentic design director that orchestrates the full workflow from strategic discovery to shipped UI. Use steve-designer whenever the user wants to design or build a website, landing page, web app, or mobile app — especially when they mention "distinctive", "not generic", "Awwwards-style", "like Linear/Vercel/Arc", or want to avoid "AI-generic" output. Also triggers for design systems, design tokens, UI inspiration workflows, or when coordinating multiple design plugins (frontend-design, ui-ux-pro-max, Playwright MCP, baseline-ui). steve-designer conducts discovery, synthesizes references, defines tokens, then delegates build and polish to specialized subagents and plugins. Does NOT replace frontend-design or other build plugins — it orchestrates them.
+description: Agentic design director that orchestrates the full workflow from strategic discovery to shipped UI. Use steve-designer whenever the user wants to design or build a website, landing page, web app, or mobile app — especially when they mention "distinctive", "not generic", "Awwwards-style", "like Linear/Vercel/Arc", or want to avoid "AI-generic" output. Also triggers for design systems, design tokens, UI inspiration workflows, or when coordinating multiple design plugins (frontend-design, ui-ux-pro-max, Playwright MCP, baseline-ui). steve-designer also owns the project's UI design system once invoked: it directs any UI change (building it, or handing an execution contract to another agent or tool) and verifies work from any executor — working tree, commit, range, or PR. Additional triggers: "mudar UI" / "change UI", "nova tela" / "new screen", "conformar tela" / "conform a screen", "revisar diff de UI" / "review a UI diff", "prompt para outra ferramenta" / "prompt for another tool", design system, design tokens. steve-designer conducts discovery, synthesizes references, defines tokens, then delegates build and polish to specialized subagents and plugins. Does NOT replace frontend-design or other build plugins — it orchestrates them.
 ---
 
 # steve-designer
@@ -29,26 +29,66 @@ The steve-designer workflow has six phases. Each phase has a **gate** — don't 
 6. POLISH           → Orchestrate baseline-ui → a11y → motion → critic
 ```
 
-At the end of every phase, append decisions to `design-brief.md` in the project root. This is the memory. If the user returns in a new session, read this file first.
+At the end of every phase, append decisions to the **brief**. This is the memory. If the user returns in a new session, read it first.
+
+### Where the brief and the manifest live (resolution order)
+
+State this once; every command, script, and hook obeys it:
+
+1. an explicit flag, if one was passed;
+2. `docs/design/brief.md` (resp. `docs/design/manifest.json`) if it exists;
+3. the legacy `design-brief.md` (resp. `design-system-manifest.json`) at the project root if it exists;
+4. otherwise `docs/design/brief.md` (resp. `docs/design/manifest.json`) — the **creation** target.
+
+If **both** the new and the legacy path exist, stop and name both files. Never choose in silence.
 
 ---
 
-## Two modes: Creation vs Sheriff
+## Three modes
 
-steve-designer has two modes:
+**Steve owns the UI design system of any project it is invoked in; every UI change goes through Steve.** That ownership plays out in three modes:
 
-- **Creation mode** (the six phases below) — blank page → shipped UI with real identity.
-- **Sheriff mode** (governance) — keep an *existing* design system faithful during ongoing
-  development, in Claude Code **and** Codex. Use when the project already has tokens,
-  primitives, and packages, and the problem is drift/hallucination, not a missing identity.
+- **Creation** (the six phases below) — blank page → shipped UI with real identity. Steve builds the system.
+- **Governance** — adopt an *existing* codebase's design system and keep it faithful during ongoing development, in Claude Code **and** Codex. Use when the project already has tokens, primitives, and packages, and the problem is drift/hallucination, not a missing identity. `/steve-designer:enforce` (one-time setup per repo) then `/steve-designer:check` (verify any change).
+- **Direction** — drive one UI change on an already-governed project. `/steve-designer:build` (Steve builds it via `component-builder`) or `/steve-designer:handoff` (Steve hands the same contract to any other executor — Claude, Codex, v0, Lovable, a human — and closes with `check`).
 
-Enter Sheriff mode with `/steve-designer:guard` (one-time setup per repo) and
-`/steve-designer:patrol` (review a diff). Sheriff mode is built on portable artifacts —
-`design-system-manifest.json`, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) —
-so the guarantee holds regardless of which agent wrote the code. The skill, commands,
-hook, and `design-enforcer` subagent are the Claude-side convenience layer.
+### The eight commands
 
-See `references/governance-playbook.md` for the full model.
+| Command | Mode | What it does |
+|---|---|---|
+| `/steve-designer:start` | Creation | The six phases, from zero. |
+| `/steve-designer:resume` | Creation | Resume from the brief. |
+| `/steve-designer:enforce` | Governance | Adopt the repo: ingest → `docs/design/` → law → gate. |
+| `/steve-designer:check` | Governance | Verify work: working tree (default), `--commit`, `--range`, `--pr`, `--visual`. |
+| `/steve-designer:build` | Direction | Build or conform one screen from the contract, then `check`. |
+| `/steve-designer:handoff` | Direction | The same contract, as a prompt for any executor. |
+| `/steve-designer:arsenal` | Transversal | Check the toolchain. |
+| `/steve-designer:help` | Transversal | Print `references/capabilities.md` — the map, for humans and agents. |
+
+`guard` and `patrol` are **deprecated aliases** for `enforce` and `check` through the 0.3.x series; they warn and forward. Removed in 0.4.
+
+Governance is built on portable artifacts — the manifest, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) — so the guarantee holds regardless of which agent wrote the code. The skill, commands, hook, and `design-enforcer` subagent are the Claude-side convenience layer.
+
+See `references/governance-playbook.md` for the full model and `references/capabilities.md` for the canonical capability map any other agent can read.
+
+---
+
+## The `docs/design/` folder
+
+Steve owns this folder in any governed project. It is the canonical documentation of the design system.
+
+```
+docs/design/
+├── design-doc.md          # FONTE CANÔNICA — principles, tokens, voice, components, states, a11y, checklist
+├── brief.md               # memory of the Creation phases (legacy path: design-brief.md at the root)
+├── manifest.json          # machine inventory of tokens + components (legacy: design-system-manifest.json)
+├── contrast.md            # fg×bg contrast matrix per token pair + forbidden pairs
+├── screens.md             # screen → route → components → required states → origin
+├── decisions.md           # history: version · date · author · change · lesson, plus halt-and-ask pendings
+├── capabilities.md        # copy of the capability map, for any agent to read Steve cold
+└── handoffs/              # one contract per change handed to an external executor
+AGENTS.md                  # stays at the root — it is where agents look
+```
 
 ---
 
@@ -64,7 +104,7 @@ If essential plugins are missing, say something like:
 
 **Subsequent runs:** Skip this phase silently unless the user mentions install issues.
 
-**Output:** Nothing written to `design-brief.md`. This is infrastructure.
+**Output:** Nothing written to the brief. This is infrastructure.
 
 ---
 
@@ -174,6 +214,9 @@ The tokens-engineer produces:
 - `design-tokens.ts` (or the project's existing format)
 - `tailwind.config.ts` updates
 - `tokens-preview.html` — a single static page showing every token rendered (palette chips, type scale samples, spacing scale, radii, shadows, motion samples)
+- `docs/design/contrast.md` — the fg×bg contrast matrix against WCAG 2.1, plus the forbidden-pairs list
+
+Then **you** generate `docs/design/design-doc.md` from `templates/design-doc.template.md`, filled from the tokens and the brief. It is the canonical system doc from this point on; every later phase reads it.
 
 ### Show the swatch live
 
@@ -195,6 +238,8 @@ Iterate until the user approves. If the user says "something feels off but I can
 - **Type scale:** [e.g., modular 1.25, base 16px]
 - **Spacing:** [base unit + scale]
 - **Motion:** [timing values, easing]
+- **Design doc:** docs/design/design-doc.md
+- **Contrast matrix:** docs/design/contrast.md
 - **Preview URL:** [local URL or path]
 - **Approved:** [date]
 ```
@@ -281,12 +326,12 @@ After the critic runs, present their 5 points of criticism to the user. Ask: "Wh
 
 ---
 
-## The design-brief.md file
+## The brief file
 
-Create this file at the **project root** on first run of Phase 2. Never put it in the skill directory. Use the template at `templates/design-brief.template.md`.
+Create it on first run of Phase 2, at `docs/design/brief.md` — the creation target of the resolution order above. Never put it in the skill directory. Use the template at `templates/brief.template.md`.
 
 On subsequent sessions (new chat on same project):
-1. Read `design-brief.md` at start
+1. Resolve and read the brief at start (`docs/design/brief.md`, legacy fallback `design-brief.md`)
 2. Identify which phase was last completed
 3. Say: "I see we last left off after Phase 4 (tokens approved Nov 12). Want to continue with building the hero section, or revisit something?"
 
@@ -318,7 +363,7 @@ See `references/anti-patterns.md` for the full list. The most common failures:
 - **Writing components yourself.** You're the director. If you catch yourself writing JSX, stop and spawn a subagent.
 - **Skipping the improbable combo.** Without it, you're just averaging references. Averages produce AI-generic output.
 - **Skipping the critic at the end.** The critic is where distinctiveness gets defended.
-- **Forgetting to update the brief.** Every phase, append. The brief is the memory.
+- **Forgetting to update the brief.** Every phase, append to `docs/design/brief.md`. The brief is the memory.
 
 ---
 
@@ -333,27 +378,34 @@ Read these when the corresponding phase starts. Don't preload all of them.
 - `references/phase-playbook.md` — Each phase expanded with example prompts and edge cases
 - `references/orchestration-map.md` — Full version of the phase-to-tool mapping
 - `references/anti-patterns.md` — What makes output look AI-generic, and how to avoid each
-- `references/governance-playbook.md` — Sheriff mode: enforcement model, severity, stack behavior
+- `references/hard-won-rules.md` — Non-negotiable UI rules learned the hard way (floating surfaces, confirm dialogs, feedback text, empty/success copy)
+- `references/governance-playbook.md` — Governance mode: enforcement model, severity, scopes, stack behavior
+- `references/capabilities.md` — The canonical capability map; `/steve-designer:help` prints it verbatim
 
 ## Agent prompts
 
 Read these when spawning the corresponding subagent:
 
-- `agents/tokens-engineer.md` — Builds the token system and preview swatch
-- `agents/component-builder.md` — Builds sections with constraints enforced
-- `agents/design-critic.md` — Senior-designer-style critique
-- `agents/design-enforcer.md` — Semantic design-system review (Sheriff mode)
+- `agents/tokens-engineer.md` — Builds the token system and preview swatch; in audit mode produces `docs/design/contrast.md`
+- `agents/component-builder.md` — Builds sections with constraints enforced; halts and asks on a missing decision
+- `agents/design-critic.md` — Senior-designer-style critique (`check --visual`)
+- `agents/design-enforcer.md` — Semantic design-system review (Governance mode)
 
 ## Templates
 
-- `templates/design-brief.template.md` — The persistent memory file
-- `templates/final-prompt.template.md` — Structured prompt for external AI builders if user wants to use v0/Lovable
+- `templates/brief.template.md` — The persistent memory file
+- `templates/design-doc.template.md` — The canonical design doc generated into `docs/design/`
+- `templates/screens.template.md` — The screen inventory matrix
+- `templates/decisions.template.md` — Decision history and the halt-and-ask queue
+- `templates/handoff.template.md` — The execution contract, agnostic of executor
 - `templates/claude-md-snippet.template.md` — Snippet to paste into the project's CLAUDE.md
 
 ## Scripts
 
 - `scripts/check_arsenal.sh` — Arsenal verification; prints what's installed + install commands for what's missing
-- `scripts/init_project_brief.py` — Creates the initial `design-brief.md` from the template
+- `scripts/ingest_design_system.py` — Scans the repo and emits the design-system manifest
+- `scripts/design_lint.mjs` — The mechanical gate; resolves the scope (`--changed`, `--commit`, `--range`, `--pr`)
+- `scripts/init_project_brief.py` — Creates the initial brief from the template
 - `scripts/start_preview.sh` — Starts a local dev server and opens Playwright screenshot
 
 ---

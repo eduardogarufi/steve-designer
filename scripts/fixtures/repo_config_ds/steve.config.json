@@ -1,5 +1,8 @@
 {
   "dsSources": [
     { "dir": "lib/design/**", "package": "@custom/ds" }
-  ]
+  ],
+  "components": {
+    "FancyPanel": { "states": ["default", "loading"], "a11y": ["aria-busy"] }
+  }
 }

@@ -1,0 +1,17 @@
+:root {
+  --color-bg-base: #080b12;
+  --color-accent: #3b82f6;
+  --success: #10b981;
+  --success-fg: #34d399;
+  --success-subtle: rgba(16,185,129,.12);
+  --color-error: #ef4444;
+  --text-h1: 2.5rem;
+  --text-h1-line-height: 1.1;
+  --text-h1-weight: 700;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --z-modal: 1000;
+  --z-dropdown-in-modal: 1050;
+  --bp-md: 768px;
+  --breakpoint-xl: 1280px;
+  --space-1: 4px;
+}

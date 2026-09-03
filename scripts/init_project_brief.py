@@ -17,6 +17,7 @@ import datetime
 import os
 import sys
 from pathlib import Path
+from steve_paths import StevePathError, ensure_parent_dir, resolve_brief_path
 
 
 def find_template() -> Path:
@@ -27,9 +28,10 @@ def find_template() -> Path:
     #   plugin-root/scripts/init_project_brief.py (this file)
     #   plugin-root/skills/steve-designer/templates/design-brief.template.md
     candidates = [
+        script_dir.parent / "skills" / "steve-designer" / "templates" / "brief.template.md",
         script_dir.parent / "skills" / "steve-designer" / "templates" / "design-brief.template.md",
-        script_dir / "templates" / "design-brief.template.md",
-        script_dir.parent / "templates" / "design-brief.template.md",
+        script_dir / "templates" / "brief.template.md",
+        script_dir.parent / "templates" / "brief.template.md",
     ]
 
     for c in candidates:
@@ -62,11 +64,17 @@ def main() -> None:
     project_name = args.project_name or project_root.name
 
     # Check for existing brief
-    brief_path = project_root / "design-brief.md"
+    try:
+        brief_path = Path(resolve_brief_path(None, str(project_root)))
+    except StevePathError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        sys.exit(1)
     if brief_path.exists() and not args.force:
-        print(f"design-brief.md already exists at {brief_path}.")
+        print(f"brief already exists at {brief_path}.")
         print("Use --force to overwrite, or run /steve-designer:resume instead.")
         sys.exit(1)
+
+    ensure_parent_dir(str(brief_path))
 
     # Load template
     template_path = find_template()

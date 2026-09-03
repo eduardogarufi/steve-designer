@@ -19,32 +19,37 @@ quality is made or broken.
 ```
 steve-designer/
 ├── .claude-plugin/plugin.json      # plugin manifest
-├── agents/                         # subagent prompts
-├── commands/                       # slash commands
-├── scripts/                        # install + arsenal + preview helpers
+├── .claude-plugin/marketplace.json # marketplace manifest
+├── agents/                         # subagent prompts (tokens, build, critic, enforcer)
+├── commands/                       # slash commands (8 + 2 deprecated aliases)
+├── scripts/                        # install + arsenal + ingest + lint + preview helpers
 ├── skills/steve-designer/
 │   ├── SKILL.md                    # the brain
-│   ├── references/                 # catalogs — see below
-│   └── templates/                  # brief + snippets
-├── docs/                           # user-facing install docs
+│   ├── references/                 # catalogs, capabilities.md — see below
+│   └── templates/                  # brief, manifest, decisions, handoff, design-doc
+├── docs/                           # user-facing install docs (HELP.md, INSTALACAO.md)
 └── install.sh                      # installer
 ```
 
 ## Local setup
 
 1. Clone the repo.
-2. Install it as a project plugin into a scratch directory:
+2. Register it as a local marketplace and install it:
    ```bash
-   mkdir -p /tmp/steve-scratch && cd /tmp/steve-scratch
-   bash /path/to/steve-designer/install.sh --project
+   cd /path/to/steve-designer
+   ./install.sh --local
    ```
-3. Start a new Claude Code session from that scratch dir and run
-   `/steve-designer:start` to exercise the change.
+3. Restart Claude Code, start a new session in any project, and run
+   `/steve-designer:start` (or `/steve-designer:enforce` on an existing codebase) to
+   exercise the change.
 
 For a one-shot sanity check on the plugin structure, the CI workflow runs:
-- `python3` validation of `.claude-plugin/plugin.json`
+- `python3` validation of `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`
 - `shellcheck` on every shell script
-- a dry-run of `install.sh --project` against a temp directory
+- a structure check for the required commands, agents, and scripts
+- `node --test scripts/design_lint.test.mjs scripts/design_lint.cli.test.mjs`
+- `python3 scripts/test_ingest.py`
+- a syntax check of `install.sh` (`bash -n install.sh`, `install.sh --help`)
 
 Reproduce it locally before opening a PR.
 

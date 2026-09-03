@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 2,
+  "stack": { "type": "shadcn", "tailwind": true },
+  "tokens": { "color": { "bg-base": { "value": "#080b12", "role": "background" }, "accent": "#3b82f6" }, "feedback": { "success": { "solid": "#10b981", "fg": "#34d399" } }, "spacing": { "1": "4px", "2": "8px" }, "radius": {}, "shadow": {}, "motion": {}, "zIndex": { "modal": 1000 }, "breakpoints": { "md": "768px" } },
+  "components": [{ "name": "Button", "import": "@/components/ui/button", "props": ["variant"] }],
+  "i18n": { "enabled": true, "keyPattern": "<area>.<screen>.<element>", "source": "src/i18n/pt-BR.json" },
+  "packages": {}, "allowedHex": []
+}

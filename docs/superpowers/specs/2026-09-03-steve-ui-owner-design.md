@@ -35,7 +35,7 @@ As práticas do doc do Kaique que o Steve não reforçava entram como regra: cam
 | Transversal | `/steve-designer:arsenal` | Inalterado. |
 | Transversal | `/steve-designer:help` (novo) | Mapa: os três modos, os oito comandos, quando usar cada um, o que o Steve produz e onde. Serve humano e agente. |
 
-`guard.md` e `patrol.md` são removidos; o CHANGELOG registra o rename. Não há alias.
+`guard.md` e `patrol.md` permanecem como aliases finos depreciados na série 0.3.x (ver §13.6); o CHANGELOG registra o rename.
 
 ### 3.1 Como outro agente invoca o Steve
 

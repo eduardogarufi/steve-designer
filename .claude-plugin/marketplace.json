@@ -5,15 +5,15 @@
     "url": "https://github.com/eduardogarufi"
   },
   "metadata": {
-    "description": "Agentic design orchestrator for Claude Code.",
-    "version": "0.2.0"
+    "description": "Agentic design director for Claude Code that owns the UI design system of any project.",
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "steve-designer",
       "source": "./",
-      "description": "Agentic design director that orchestrates discovery, reference synthesis, tokens, build, and polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline.",
-      "version": "0.2.0",
+      "description": "Agentic design director that owns the UI design system of any project, across three modes: Creation (discovery, reference synthesis, tokens, build, polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline), Governance (adopts and enforces an existing design system with a mechanical + semantic gate), and Direction (builds or hands off every subsequent UI change, then verifies it).",
+      "version": "0.3.0",
       "author": {
         "name": "Eduardo Garufi",
         "email": "eduardo@capitaltrend.group",

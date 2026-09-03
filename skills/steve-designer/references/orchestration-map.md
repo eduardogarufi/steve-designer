@@ -33,15 +33,31 @@ Decision table: given a moment in the workflow, which tool should steve-designer
 
 ---
 
-## Sheriff mode (governance)
+## Governance mode
 
 | Moment | Primary tool | Notes |
 |--------|--------------|-------|
-| Setup on a repo | `/steve-designer:guard` → `scripts/ingest_design_system.py` | Auto-detects stack |
-| Generate the law | `templates/AGENTS.md.template.md` | Portable; CLAUDE.md points to it |
+| Setup on a repo | `/steve-designer:enforce` → `scripts/ingest_design_system.py` | Auto-detects stack; writes `docs/design/manifest.json` |
+| Generate the design doc | `templates/design-doc.template.md` | Filled from the manifest + brief; merge-safe on §1/§3/§9/§10 |
+| Generate the contrast matrix | `agents/tokens-engineer.md` in **audit mode** | Produces `docs/design/contrast.md` only |
+| Generate the law | `templates/AGENTS.md.template.md` | Portable; points at `docs/design/` and `references/capabilities.md` |
 | Block violations | `scripts/design_lint.mjs` via pre-commit + CI | Git-level; covers Codex too |
 | In-session catch (Claude) | `hooks/design-lint-hook.sh` | Silent on pass |
-| Semantic review | `agents/design-enforcer.md` via `/steve-designer:patrol` | Props, component choice, drift |
+| Resolve a scope to check | `scripts/design_lint.mjs` (`--changed` / `--commit` / `--range` / `--pr`) | Single resolver; fails closed |
+| Semantic review | `agents/design-enforcer.md` via `/steve-designer:check` | Props, component choice, states, role, voice, drift |
+| Visual critique | `agents/design-critic.md` via `/steve-designer:check --visual` | Runs on `--visual` or when a preview URL exists |
+
+---
+
+## Direction mode
+
+| Moment | Primary tool | Notes |
+|--------|--------------|-------|
+| Build or conform one screen | `/steve-designer:build` → `agents/component-builder.md` | One screen/section at a time; closes with `check` |
+| Hand the contract to another executor | `/steve-designer:handoff` → `templates/handoff.template.md` | Written to `docs/design/handoffs/<date>-<slug>.md` and printed |
+| Record what exists | `templates/screens.template.md` → `docs/design/screens.md` | Row per screen: route, components, states, origin |
+| Record a pending decision | `templates/decisions.template.md` → `docs/design/decisions.md` | Halt-and-ask: the builder stops, the director asks |
+| Tell another agent what Steve does | `/steve-designer:help` → `references/capabilities.md` | Printed verbatim; the canonical capability map |
 
 ---
 

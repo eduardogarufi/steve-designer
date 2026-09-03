@@ -36,6 +36,12 @@ Site is clearly designed in light mode first; dark mode is auto-inverted and rea
 ### Glassmorphism on everything
 Frosted glass cards, frosted glass nav, frosted glass modals. Even if it's on-trend (2026 sees Apple's Liquid Glass return), overuse reads generic. **Fix:** use glassmorphism on ONE element per page, not every element.
 
+### Everything is a card
+Every content block — hero, feature, stat, testimonial, nav item — wrapped in the same bordered surface. No block breaks the pattern, so nothing reads as more or less important than anything else. **Fix:** break at least one block out of the card pattern entirely — full-bleed, borderless, or a distinct treatment for the thing that matters most.
+
+### One surface everywhere
+No elevation or background differentiation between the page, a section, and an interactive surface — everything sits on the same flat plane. **Fix:** introduce a second surface tier from the tokens (e.g. `bg-base` for the page vs. `bg-subtle` or a shadow tier for elevated content) so surfaces read as distinct layers.
+
 ---
 
 ## Motion anti-patterns
@@ -111,6 +117,12 @@ Token file is just `@shadcn/ui`'s defaults. No project identity. **Fix:** keep s
 
 ### Hardcoded hex values in components
 Component uses `#1a1a1a` instead of `var(--fg-base)`. Breaks token system. **Fix:** every color reads from the token system. Every value. No exceptions.
+
+### Feedback color used as text at its `solid` value
+A success/warning/danger/info message renders its text in the `solid` slot instead of `fg`. `solid` is tuned for legibility as a fill against a neutral surface, not as text — it frequently fails contrast when used that way. **Fix:** text always reads the feedback family's `fg` slot; `solid` is fills only.
+
+### A z-index scale with no `dropdown-in-modal` tier
+A dropdown/popover/select portaled to `document.body` uses the plain `dropdown` z-index even when it can open inside a modal. It renders visually on top of the modal but sits under the modal's pointer-event layer — the options appear but can't be clicked. **Fix:** a dedicated `dropdown-in-modal` tier, strictly above `modal` and below `toast`.
 
 ---
 

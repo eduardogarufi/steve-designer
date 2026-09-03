@@ -1,4 +1,4 @@
-# Append to ~/.codex/config.toml. steve-designer Sheriff Mode MCP servers (keep <= 3).
+# Append to ~/.codex/config.toml. steve-designer Governance mode (`/steve-designer:enforce`) MCP servers (keep <= 3).
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "@upstash/context7-mcp@latest"]

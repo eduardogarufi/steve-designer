@@ -4,7 +4,19 @@ steve-designer é um **plugin do Claude Code**. A instalação usa o próprio CL
 do Claude Code — ele **não** descobre plugins que você joga em
 `~/.claude/plugins/` manualmente; é preciso registrar via marketplace.
 
-## 1. Do GitHub (recomendado)
+## 1. Do marketplace interno da CapitalTrend
+
+```bash
+claude plugin marketplace add CapitalTrendGroup/claude-marketplace
+claude plugin install steve-designer@capitaltrendgroup-internal
+```
+
+> Publicação nesse marketplace está em andamento. Se a instalação falhar, use uma das
+> opções abaixo enquanto isso.
+
+Depois **reinicie o Claude Code**.
+
+## 2. Do GitHub
 
 ```bash
 claude plugin marketplace add eduardogarufi/steve-designer
@@ -13,7 +25,7 @@ claude plugin install steve-designer@steve-designer
 
 Depois **reinicie o Claude Code**.
 
-## 2. De um clone local (para desenvolvimento do plugin)
+## 3. De um clone local (para desenvolvimento do plugin)
 
 ```bash
 git clone https://github.com/eduardogarufi/steve-designer.git
@@ -23,7 +35,7 @@ cd steve-designer
 
 Suas edições aparecem no próximo restart do Claude Code.
 
-## 3. Instalador interativo
+## 4. Instalador interativo
 
 ```bash
 ./install.sh
@@ -39,7 +51,7 @@ Vai perguntar se você quer instalar do clone local ou do GitHub.
 ./install.sh --uninstall   # remove plugin + marketplace
 ```
 
-## 4. Conferir se funcionou
+## 5. Conferir se funcionou
 
 Depois de reiniciar o Claude Code, rode:
 
@@ -47,7 +59,8 @@ Depois de reiniciar o Claude Code, rode:
 claude plugin list | grep steve-designer
 ```
 
-Deve aparecer `steve-designer@steve-designer  ✔ enabled`.
+Deve aparecer `steve-designer@steve-designer  ✔ enabled` (ou
+`@capitaltrendgroup-internal`, conforme a fonte usada).
 
 Dentro do Claude Code:
 
@@ -55,17 +68,27 @@ Dentro do Claude Code:
 /help
 ```
 
-Deve listar:
+Deve listar os oito comandos do Steve, entre eles:
 - `/steve-designer:arsenal`
 - `/steve-designer:start`
 - `/steve-designer:resume`
+- `/steve-designer:enforce`
+- `/steve-designer:check`
+- `/steve-designer:build`
+- `/steve-designer:handoff`
+- `/steve-designer:help`
 
-## 5. Usar
+## 6. Usar
 
 ```
 /steve-designer:arsenal   # checa pré-requisitos, oferece instalar o que falta
-/steve-designer:start     # novo projeto de design
-/steve-designer:resume    # continuar de onde parou (lê design-brief.md)
+/steve-designer:start     # novo projeto de design, do zero (Criação)
+/steve-designer:resume    # continuar de onde parou (lê docs/design/brief.md)
+/steve-designer:enforce   # adota e fiscaliza o design system existente (Governança)
+/steve-designer:check     # verifica uma mudança de UI contra o design system
+/steve-designer:build     # constrói/conforma uma tela específica (Direção)
+/steve-designer:handoff   # entrega o contrato de uma tela pra outro executor
+/steve-designer:help      # imprime o mapa de capacidades do Steve
 ```
 
 O `/arsenal` roda o `scripts/check_arsenal.sh` e, se você aceitar, executa os
@@ -104,13 +127,13 @@ steve-designer/
 ├── .claude-plugin/
 │   ├── plugin.json               # manifest do plugin
 │   └── marketplace.json          # manifest do marketplace
-├── commands/                     # /steve-designer:arsenal, :start, :resume
-├── agents/                       # 3 subagents (tokens, build, critic)
-├── scripts/                      # check_arsenal, init_brief, start_preview
+├── commands/                     # 8 comandos + 2 aliases depreciados (guard, patrol)
+├── agents/                       # 4 subagents (tokens, build, critic, enforcer)
+├── scripts/                      # check_arsenal, ingest, design_lint, steve_paths, start_preview
 └── skills/steve-designer/
     ├── SKILL.md                  # o cérebro
-    ├── references/               # catálogos de referência, anti-patterns
-    └── templates/                # brief + snippets
+    ├── references/               # capabilities.md, catálogos de referência, playbooks
+    └── templates/                # brief, manifest, decisions, handoff
 ```
 
 ## Primeiro teste sugerido

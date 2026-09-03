@@ -2,6 +2,12 @@
 
 > Persistent memory for steve-designer. Written progressively as phases complete.
 > If you open this file in a new session, steve-designer will read it and continue from the last completed phase.
+> Lives at `docs/design/brief.md` (legacy `design-brief.md` at the project root is still read).
+
+- **Status:** {{STATUS}} <!-- draft | in-review | locked | superseded -->
+- **Decider:** {{DECIDER}}
+- **Version:** {{VERSION}}
+- **Supersedes:** {{SUPERSEDES}} <!-- previous version this replaces, if any -->
 
 - **Project:** {{PROJECT_NAME}}
 - **Started:** {{DATE}}
@@ -53,6 +59,22 @@
 
 ### Improbable combination (optional)
 *(if accepted — a combo the user wouldn't have picked alone)*
+
+---
+
+## Voice & copy
+
+*(populated alongside references — establishes the product's voice before tokens lock)*
+
+- **Tone:** {{TONE_ONE_SENTENCE}}
+- **Locale:** {{LOCALE}}
+- **Message pattern by type:**
+  - **Success:** {{SUCCESS_PATTERN}}
+  - **Error:** {{ERROR_PATTERN}}
+  - **Empty:** {{EMPTY_PATTERN}}
+  - **Destructive confirmation:** {{DESTRUCTIVE_CONFIRMATION_PATTERN}}
+- **i18n key convention:** {{KEY_PATTERN}} <!-- e.g. <area>.<screen>.<element> -->
+- **Banned words:** {{BANNED_WORDS}}
 
 ---
 

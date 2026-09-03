@@ -1,7 +1,7 @@
 {
   "name": "steve-designer",
-  "version": "0.2.0",
-  "description": "Agentic design orchestrator for Claude Code. Conducts strategic discovery, synthesizes references, defines tokens, then delegates build and polish to specialized subagents and plugins.",
+  "version": "0.3.0",
+  "description": "Agentic design director for Claude Code that owns the UI design system of any project. Creation mode conducts strategic discovery, synthesizes references, defines tokens, and builds; Governance mode adopts and enforces an existing design system; Direction mode drives and verifies every subsequent UI change.",
   "author": {
     "name": "Eduardo Garufi",
     "email": "eduardo@capitaltrend.group",

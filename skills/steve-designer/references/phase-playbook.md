@@ -263,7 +263,7 @@ All 5 pipeline steps have run. Critic has produced 5 critiques. User has triaged
 
 ### The brief is sacred
 
-Every phase updates `design-brief.md`. No exceptions. If the brief is missing something, a later session can't pick up. If the brief contradicts the actual state of the project, something went off-script — stop and reconcile.
+Every phase updates the brief — resolved as `docs/design/brief.md`, falling back to a legacy `design-brief.md` at the project root (if both exist, stop and name both). No exceptions. If the brief is missing something, a later session can't pick up. If the brief contradicts the actual state of the project, something went off-script — stop and reconcile.
 
 ### Opinionated by default, authoritative when asked
 

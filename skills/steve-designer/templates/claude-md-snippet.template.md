@@ -1,6 +1,6 @@
 # Design context — {{PROJECT_NAME}}
 
-> This section is managed by steve-designer. Do not hand-edit — update the design-brief.md instead, and re-export this snippet.
+> This section is managed by steve-designer. Do not hand-edit — update `docs/design/brief.md` instead, and re-export this snippet.
 
 ## Project identity
 
@@ -36,12 +36,18 @@ Never hardcode values in components. Always read from the token system:
 - `prefers-reduced-motion` respected on all motion
 - Semantic HTML, keyboard navigable, visible focus states
 
+## Design system docs
+
+- `docs/design/design-doc.md` — canonical human design doc.
+- `docs/design/brief.md` — full project memory from the Creation phases.
+- `docs/design/manifest.json` — machine-readable token + component inventory.
+- `docs/design/contrast.md` — token contrast matrix + forbidden pairs.
+- `docs/design/screens.md` — screen inventory.
+- `docs/design/decisions.md` — decision history + halt-and-ask pendencies.
+
 ## Build workflow
 
-For new sections/components, use `/steve-designer:resume` — it reads the brief and either guides the build or delegates to the `component-builder` subagent.
-
-Manual builds should still:
-1. Read this section of CLAUDE.md for context
+1. Ask Steve for a `handoff` contract (`/steve-designer:handoff <screen>`) before writing UI, and run `/steve-designer:check` before committing.
 2. Read `{{TOKENS_PATH}}` for the token values
 3. Consult `frontend-design` plugin to force aesthetic direction
 4. Use Context7 MCP for library APIs (Motion, Next.js, etc.)
@@ -50,7 +56,7 @@ Manual builds should still:
 
 ## Anti-patterns — avoid
 
-See the full list in `design-brief.md`. The most common:
+See the full list in `docs/design/brief.md`. The most common:
 - Purple-to-pink gradients
 - Inter without a display font companion
 - Rounded-2xl on every single element
@@ -61,7 +67,7 @@ See the full list in `design-brief.md`. The most common:
 
 ## Related files
 
-- `design-brief.md` — full project memory
+- `docs/design/brief.md` — full project memory
 - `{{TOKENS_PATH}}` — token system
 - `tokens-preview.html` — live swatch of the token system
 
