@@ -85,7 +85,7 @@ Governance and Direction run at full capacity in all three; only Creation degrad
 Claude Code (the Anthropic design engines are Claude-only). `references/arsenal.md` carries
 the full matrix.
 
-Governance is built on portable artifacts — the manifest, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) — so the guarantee holds regardless of which agent wrote the code. The skill, commands, hook, and `design-enforcer` subagent are the Claude-side convenience layer.
+Governance is built on portable artifacts — the manifest, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) — so the guarantee holds regardless of which agent wrote the code. The skill, commands, agents, and hooks are the per-CLI convenience layer on top of that.
 
 See `references/governance-playbook.md` for the full model and `references/capabilities.md` for the canonical capability map any other agent can read.
 
