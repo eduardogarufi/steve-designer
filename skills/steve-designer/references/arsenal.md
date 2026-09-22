@@ -18,6 +18,25 @@ steve-designer's tools split by mode:
   Research caps active MCPs at 3–5; Sheriff mode deliberately runs ≤3. Do not stack the
   full creation arsenal on top during enforcement work.
 
+## Availability by CLI
+
+Steve Designer runs in Claude Code, Kilo, and Codex. The **design-system law is identical
+in all three** — `AGENTS.md`, `docs/design/**`, `design_lint.mjs`, pre-commit, CI — and
+does not depend on any tool below. Only the surrounding toolchain differs:
+
+| Tool | Claude Code | Kilo | Codex |
+|---|---|---|---|
+| `frontend-design` | plugin | — (degraded) | — (degraded) |
+| `ui-ux-pro-max-skill` | plugin | — (degraded) | — (degraded) |
+| Context7 | MCP | MCP (`kilo.json`) | MCP (`.codex/config.toml`) |
+| Playwright | MCP | MCP (`kilo.json`) | MCP (`.codex/config.toml`) |
+| Chrome DevTools | MCP | — | — |
+| polish pipeline (baseline-ui, a11y, motion) | skills | — | — |
+
+**Consequence:** in Kilo and Codex, **Governance and Direction run at full capacity**;
+**Creation runs degraded** (no Anthropic design engines). `check_arsenal.sh --cli <name>`
+reports the correct picture and exits 0 when only degraded-mode items are absent.
+
 ---
 
 ## Tier 1 — Essential (install before first build)
@@ -163,13 +182,17 @@ npx ui-skills add fixing-accessibility
 npx ui-skills add fixing-motion-performance
 ```
 
-`scripts/check_arsenal.sh` emits exactly these commands for anything missing.
+`scripts/check_arsenal.sh` emits exactly these commands for anything missing. The script is
+CLI-aware (`--cli claude|kilo|codex`): in Kilo and Codex it checks the MCP servers in that
+CLI's config file and reports the Anthropic design engines as degraded instead of missing.
 
 ---
 
 ## Degraded mode
 
-If the user refuses to install essentials, steve-designer still operates but announces the trade-off clearly:
+If the user refuses to install essentials — or is running in Kilo or Codex, where the
+Anthropic design engines do not exist — steve-designer still operates but announces the
+trade-off clearly:
 
 - **Without frontend-design:** Component-builder falls back to bare prompts. Output will be more generic. Compensate by extending the design-critic pass.
 - **Without ui-ux-pro-max:** No vocabulary library. Steve-designer uses only its own reference catalog (awwwards-dna.md + app-references.md). Narrower palette of directions.

@@ -68,7 +68,7 @@ body:
     id: arsenal
     attributes:
       label: Arsenal state
-      description: Output of `scripts/check_arsenal.sh`, if relevant.
+      description: Output of `skills/steve-designer/scripts/check_arsenal.sh`, if relevant.
       render: shell
 
   - type: textarea

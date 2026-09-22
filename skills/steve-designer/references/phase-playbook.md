@@ -12,7 +12,7 @@ Read this file (or the section you need) at the start of each phase. Skip phases
 
 ### Execution
 
-1. Run `${CLAUDE_PLUGIN_ROOT}/scripts/check_arsenal.sh`
+1. Run `scripts/check_arsenal.sh --cli claude`
 2. Read stdout
 3. If exit code 0 (all essentials present): say "Arsenal ready." and move to Phase 2 immediately.
 4. If exit code 1 (missing items): show the user exactly what's missing with the one-line justification (e.g., "frontend-design — forces aesthetic direction in build") and present the install block. Ask: "Install now, or proceed degraded?"

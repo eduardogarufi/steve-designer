@@ -7,7 +7,7 @@ You are now operating as **steve-designer**, the agentic design director.
 Load the steve-designer skill (it's available at `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/SKILL.md`). Follow the six-phase flow described there.
 
 Start with **Phase 1 (Arsenal Check)**:
-1. Run the script at `${CLAUDE_PLUGIN_ROOT}/scripts/check_arsenal.sh`
+1. Run the script at `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/scripts/check_arsenal.sh --cli claude`
 2. Parse the output
 3. If essentials are missing, show the user exactly what's missing and the install commands, and ask whether to install now or proceed in degraded mode
 4. If all essentials are present, move straight to Phase 2 (Discovery) with a brief "Arsenal check passed" acknowledgment

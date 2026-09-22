@@ -1,12 +1,17 @@
 # steve-designer
 
-**The owner of a project's UI design system.**
+**The owner of a project's UI design system — in Claude Code, Kilo, and Codex.**
 
 In any project that invokes it, steve-designer creates the design system from scratch or
 adopts an existing one; it directs every subsequent UI change — building it directly
 through subagents, or handing a contract to another executor; it verifies any executor's
 work — working tree, a commit, a range, or a PR — mechanically, semantically, and
 visually; and it maintains the canonical documentation for the system in `docs/design/`.
+
+The enforcement is **portable**: it lives in git-level artifacts (`AGENTS.md`,
+`docs/design/**`, `scripts/design_lint.mjs`, the pre-commit hook, and CI), so it holds no
+matter which agent — or human — wrote the code. The skill, commands, subagents, and hooks
+are the per-CLI convenience layer on top of that.
 
 ## Three modes
 
@@ -51,9 +56,8 @@ Drives a specific UI change on an already-governed project.
   (`skills/steve-designer/references/capabilities.md`) verbatim, for a human or another
   agent.
 
-**Deprecated aliases:** `/steve-designer:guard` → `enforce`, `/steve-designer:patrol` →
-`check`. Both remain as thin, deprecation-warning aliases through the 0.3.x series;
-removed in 0.4.
+**Deprecated aliases removed in 0.4.0:** `/steve-designer:guard` → `enforce`,
+`/steve-designer:patrol` → `check`.
 
 ## How another agent uses Steve
 
@@ -116,32 +120,59 @@ ones, and fix spacing to the scale. Show me the diff before applying it.
 
 ## Install
 
-steve-designer is a Claude Code plugin. Install it with the built-in plugin CLI.
+### Claude Code
 
-### From the CapitalTrend marketplace
+Install it with the built-in plugin CLI.
 
 ```bash
+# From the CapitalTrend marketplace
 claude plugin marketplace add CapitalTrendGroup/claude-marketplace
 claude plugin install steve-designer@capitaltrendgroup-internal
-```
 
-> Publication to this marketplace is in progress. If the install fails, use one of the
-> options below in the meantime.
-
-### From GitHub
-
-```bash
+# …or from GitHub
 claude plugin marketplace add eduardogarufi/steve-designer
 claude plugin install steve-designer@steve-designer
 ```
 
 Then restart Claude Code.
 
-### From a local clone (for plugin development)
+### Kilo and Codex
+
+Kilo and Codex are file-based: the installer renders a bundle from the single source and
+copies it into the CLI's config directory. `python3` is required — the installer uses it to
+merge configuration safely (never duplicating a server you already define) and to anchor
+each file to the absolute skill path.
 
 ```bash
 git clone https://github.com/eduardogarufi/steve-designer.git
 cd steve-designer
+
+./install.sh --cli kilo  --global     # ~/.config/kilo
+./install.sh --cli codex --global     # ~/.agents/skills + ~/.codex
+./install.sh --cli kilo  --project    # into ./.kilo
+./install.sh --cli codex --project    # into ./.agents + ./.codex
+./install.sh --cli all   --global     # every CLI found on PATH
+```
+
+| CLI | Command entry point | Subagents | In-session hook |
+|---|---|---|---|
+| Claude Code | `/steve-designer:enforce` | `agents/*.md` | PostToolUse |
+| Kilo | `/steve-enforce` | `agent/steve-*.md` | — (git gate only) |
+| Codex | `$steve-designer enforce` | `.codex/agents/steve_*.toml` | `PostToolUse` on `apply_patch` |
+
+The Kilo and Codex command files are thin dispatchers: they load the installed skill and
+run the named workflow from `<skill>/commands/<name>.md`. The installer keeps a manifest of
+every path it wrote, so it refuses to overwrite a file it does not own (use `--force` to
+override) and `--uninstall` removes exactly those paths and nothing else.
+
+Governance and Direction run at full capacity in all three. Only **Creation** degrades
+outside Claude Code, because `frontend-design` and `ui-ux-pro-max-skill` are Claude-only
+plugins. See [`adapters/kilo/README.md`](./adapters/kilo/README.md) and
+[`adapters/codex/README.md`](./adapters/codex/README.md).
+
+### From a local clone (Claude Code plugin development)
+
+```bash
 ./install.sh --local       # or just ./install.sh for interactive
 ```
 
@@ -150,17 +181,19 @@ Your local edits reflect the next time Claude Code restarts.
 ### Installer flags
 
 ```bash
-./install.sh               # interactive — asks local clone or GitHub
-./install.sh --local       # register this directory as a marketplace
-./install.sh --github      # register the GitHub repo as a marketplace
-./install.sh --uninstall   # remove plugin + marketplace
+./install.sh                             # interactive
+./install.sh --cli claude --local        # register this clone as a marketplace
+./install.sh --cli claude --github       # register the GitHub repo as a marketplace
+./install.sh --cli <claude|kilo|codex|all> --global|--project
+./install.sh --cli <name> --force        # overwrite files this installer does not own
+./install.sh --cli <name> --uninstall    # remove exactly what the installer wrote
 ```
 
 ### Uninstall
 
 ```bash
-./install.sh --uninstall
-# or
+./install.sh --cli kilo --uninstall
+# or, for Claude Code directly:
 claude plugin uninstall steve-designer@steve-designer
 claude plugin marketplace remove steve-designer
 ```
@@ -169,6 +202,11 @@ See [`docs/INSTALACAO.md`](./docs/INSTALACAO.md) for a step-by-step guide in Por
 and [`docs/HELP.md`](./docs/HELP.md) for the day-to-day cheat sheet.
 
 ## The arsenal it orchestrates
+
+The first two rows are Claude Code plugins — outside Claude Code they are reported as
+degraded and Creation runs without them. The MCP servers exist in every CLI (Kilo declares
+them in `kilo.json`, Codex in `.codex/config.toml`). Governance and Direction never depend
+on any of this.
 
 ### Essential (install these for full capacity)
 
@@ -208,55 +246,43 @@ reference style to use-case — see `references/when-to-resist-awwwards.md`.
 
 Once a design system is governed, the same discipline applies in reverse: the gate is
 git-level (pre-commit + CI), so it holds regardless of which agent or tool wrote the code
-— Claude, Codex, or a human.
+— Claude, Kilo, Codex, or a human.
 
 ## Structure
 
+The **single source** is `skills/steve-designer/` — self-contained and portable. The
+Claude Code adapter stays at the root (the plugin layout is fixed by convention), and
+`scripts/build_dist.mjs` renders the Kilo and Codex bundles from that one source.
+
 ```
 steve-designer/
-├── .claude-plugin/
-│   ├── plugin.json               # Plugin manifest
-│   └── marketplace.json          # Marketplace manifest (makes this repo installable)
-├── skills/
-│   └── steve-designer/
-│       ├── SKILL.md              # The brain
-│       ├── references/           # Canonical references, capabilities map, playbooks
-│       └── templates/            # Brief, manifest, decisions, handoff templates
-├── agents/
-│   ├── tokens-engineer.md        # Spawned in Creation, Phase 4
-│   ├── component-builder.md      # Spawned in Creation Phase 5, and in Direction (build)
-│   ├── design-critic.md          # Spawned in Creation Phase 6, and in check --visual
-│   └── design-enforcer.md        # Spawned in check (Governance)
-├── commands/
-│   ├── arsenal.md                # /steve-designer:arsenal
-│   ├── start.md                  # /steve-designer:start
-│   ├── resume.md                 # /steve-designer:resume
-│   ├── enforce.md                # /steve-designer:enforce
-│   ├── check.md                  # /steve-designer:check
-│   ├── build.md                  # /steve-designer:build
-│   ├── handoff.md                # /steve-designer:handoff
-│   ├── help.md                   # /steve-designer:help
-│   ├── guard.md                  # deprecated alias → enforce
-│   └── patrol.md                 # deprecated alias → check
-├── scripts/
-│   ├── check_arsenal.sh          # Verifies installed tools (supports --install)
-│   ├── init_project_brief.py     # Seeds docs/design/brief.md
-│   ├── ingest_design_system.py   # Detects stack, emits docs/design/manifest.json
-│   ├── design_lint.mjs           # Blocking linter (--changed/--commit/--range/--pr)
-│   ├── steve_paths.py            # Shared manifest/brief path resolution
-│   └── start_preview.sh          # Local preview server
-├── hooks/                        # design-lint pre-commit / edit hook
-├── templates/                    # AGENTS.md, CI, pre-commit, MCP config templates
-├── install.sh                    # Installer wrapper (marketplace add + install)
-└── README.md                     # This file
+├── skills/steve-designer/          # THE SINGLE SOURCE
+│   ├── SKILL.md                    # The brain
+│   ├── references/                 # Catalogs, capabilities map, playbooks, arsenal
+│   ├── templates/                  # Brief, design-doc, AGENTS.md, CI, pre-commit, MCP
+│   ├── scripts/                    # lint, arsenal, ingest, preview, hook helpers + tests
+│   └── commands/                   # Generated into the bundle from commands/ below
+├── adapters/
+│   ├── kilo/                       # Kilo README + kilo.json MCP template
+│   └── codex/                      # Codex README + mcp.toml + hooks.json templates
+├── scripts/build_dist.mjs          # Renders dist/kilo and dist/codex from the source
+├── .claude-plugin/                 # Claude adapter — plugin + marketplace manifests
+├── commands/                       # Claude adapter — /steve-designer:* (source of the workflows)
+├── agents/                         # Claude adapter — subagent prompts
+├── hooks/                          # Claude adapter — PostToolUse design-lint hook
+├── install.sh                      # Multi-CLI installer (claude | kilo | codex)
+└── dist/                           # Generated bundles (gitignored)
 ```
+
+The eight commands: `start`, `resume`, `enforce`, `check`, `build`, `handoff`, `arsenal`,
+`help`. `guard` and `patrol` were removed in 0.4.0.
 
 ## Status
 
-**Version 0.3.0.** Creation mode is battle-tested; Governance and Direction modes
-(Sheriff Mode + the design-doc/manifest ownership model) are new in this release. If a
-reference is wrong, a catalog entry is missing, or a subagent produces something off,
-flag it — the skill improves by running.
+**Version 0.4.0.** Multi-CLI: the same portable law in Claude Code, Kilo, and Codex.
+Creation mode is battle-tested; Governance and Direction run at full capacity in every
+CLI. If a reference is wrong, a catalog entry is missing, or a subagent produces something
+off, flag it — the skill improves by running.
 
 See [`CHANGELOG.md`](./CHANGELOG.md) for release history.
 

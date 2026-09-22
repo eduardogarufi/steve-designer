@@ -20,8 +20,32 @@ com identidade), **Governança** (adota e fiscaliza um design system existente) 
 | `/steve-designer:arsenal` | Transversal | Verifica quais plugins/MCPs estão instalados e mostra o que falta |
 | `/steve-designer:help` | Transversal | Imprime o mapa canônico de capacidades (`skills/steve-designer/references/capabilities.md`) literalmente |
 
-**Aliases depreciados (funcionam até 0.4, com aviso):** `/steve-designer:guard` →
-`enforce`, `/steve-designer:patrol` → `check`.
+**Aliases depreciados removidos na 0.4.0:** `/steve-designer:guard` →
+`enforce`, `/steve-designer:patrol` → `check`. Use os nomes novos.
+
+---
+
+## Outros CLIs (Kilo e Codex)
+
+O Steve roda igual em **Claude Code**, **Kilo** e **Codex**. A lei é a mesma — `AGENTS.md`,
+`docs/design/**`, `design_lint.mjs`, pre-commit e CI — então o gate segura o código
+independente do CLI. Só muda a porta de entrada:
+
+| | Claude Code | Kilo | Codex |
+|---|---|---|---|
+| Comandos | `/steve-designer:enforce` | `/steve-enforce` | `$steve-designer enforce` |
+| Subagents | `agents/*.md` | `agent/steve-*.md` | `.codex/agents/steve_*.toml` |
+| Hook por edição | PostToolUse | — (só o gate git) | `PostToolUse` em `apply_patch` |
+| Criação (frontend-design, ui-ux-pro-max) | completa | degradada | degradada |
+
+**Governança e Direção rodam completas nos três.** Só a **Criação degrada** fora do Claude
+Code, porque os plugins `frontend-design` e `ui-ux-pro-max-skill` são exclusivos do Claude
+— o `arsenal` avisa em vez de falhar. No Kilo não existe hook por edição (falta um
+`hooks.json`); a fiscalização contínua fica no pre-commit + CI + `/steve-check`.
+
+Instalação: `./install.sh --cli <kilo|codex> --global|--project` (requer `python3`). O
+desinstalador remove exatamente o que o instalador escreveu, via manifesto — nunca usa
+glob de namespace.
 
 ---
 
@@ -43,14 +67,14 @@ com identidade), **Governança** (adota e fiscaliza um design system existente) 
 (uma vez por repo)            (manifesto+design-doc)  (AGENTS.md + pre-commit + CI)
 ```
 
-**O que o gate bloqueia** (pre-commit + CI, automático, vale em Claude e Codex):
+**O que o gate bloqueia** (pre-commit + CI, automático, vale em Claude, Kilo e Codex):
 - Cor hardcoded (hex que não está nos tokens) → use `var(--color-*)`
 - Spacing fora da escala (ex.: `p-[13px]`)
 - Componente fora do inventário (importou algo que não existe no DS)
 - String literal em JSX (só quando `manifest.i18n.enabled === true`)
 
 **A garantia cross-tool:** o gate é git-level (pre-commit + CI), então segura o código
-**independente de qual agente escreveu** — Claude ou Codex.
+**independente de qual agente escreveu** — Claude, Kilo, Codex ou humano.
 
 **`check` verifica quatro escopos:** working tree (padrão), `--commit <sha>`,
 `--range <a>..<b>`, `--pr <n>` — e sai com código 0 (limpo), 1 (violação) ou 2 (erro de
@@ -130,16 +154,22 @@ mudou antes de aplicar.
 Três formas, veja o passo a passo completo em [`INSTALACAO.md`](./INSTALACAO.md):
 
 ```bash
-# marketplace interno da CapitalTrend (publicação em andamento)
+# Claude Code — marketplace interno da CapitalTrend (publicação em andamento)
 claude plugin marketplace add CapitalTrendGroup/claude-marketplace
 claude plugin install steve-designer@capitaltrendgroup-internal
 
-# ou GitHub
+# ou Claude Code via GitHub
 claude plugin marketplace add eduardogarufi/steve-designer
 claude plugin install steve-designer@steve-designer
 
-# ou clone local (dev do plugin)
+# ou clone local (dev do plugin, Claude Code)
 ./install.sh --local
+
+# Kilo e Codex (a partir do clone)
+./install.sh --cli kilo  --global     # ~/.config/kilo
+./install.sh --cli codex --global     # ~/.agents + ~/.codex
+./install.sh --cli kilo  --project    # ./.kilo
+./install.sh --cli codex --project    # ./.agents + ./.codex
 ```
 
 Veja [`README.md`](../README.md) (em inglês) para a documentação completa e a estrutura

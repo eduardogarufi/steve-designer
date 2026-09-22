@@ -38,8 +38,27 @@ documentation for the system in `docs/design/`.
 | `arsenal` | Transversal | Checks that the plugin's own toolchain (frontend-design, ui-ux-pro-max, Context7, Playwright) is present and reports what's missing. | Plugin/tool availability. | Nothing persistent. | Pass/fail per tool, degraded-mode notes. |
 | `help` | Transversal | Prints this file verbatim. Serves both a human reading the terminal and an agent parsing for capabilities. | This file. | Nothing. | This file's content, unmodified. |
 
-**Deprecated aliases:** `guard` → `enforce`, `patrol` → `check`. Both remain as thin,
-deprecation-warning aliases through the 0.3.x series; removed in 0.4.
+**Deprecated aliases:** `guard` → `enforce`, `patrol` → `check` were deprecated in 0.3.x and
+**removed in 0.4.0**. Use `enforce` and `check`.
+
+## Availability by CLI
+
+Steve runs in Claude Code, Kilo, and Codex from the same source. The **law is portable** —
+`AGENTS.md`, `docs/design/**`, `scripts/design_lint.mjs`, the pre-commit hook, and CI enforce
+identically in every CLI, regardless of which agent wrote the code.
+
+| Capability | Claude Code | Kilo | Codex |
+|---|---|---|---|
+| Command entry point | `/steve-designer:<cmd>` | `/steve-<cmd>` | `$steve-designer <cmd>` |
+| Skill | plugin skill | `.kilo/skills/steve-designer/` | `.agents/skills/steve-designer/` |
+| Subagents | `agents/*.md` | `agent/steve-*.md` | `.codex/agents/steve_*.toml` |
+| In-session hook | PostToolUse | — (git gate only) | `PostToolUse` on `apply_patch` |
+| Creation engines (`frontend-design`, `ui-ux-pro-max`) | available | degraded | degraded |
+| Governance + Direction | full | full | full |
+
+Install with `./install.sh --cli <claude|kilo|codex> [--global|--project]`. The `check`,
+`enforce`, `build`, and `handoff` flows are identical in all three; only Creation degrades
+outside Claude Code, and only the in-session warning differs for Kilo.
 
 ## Artifacts table
 
@@ -104,10 +123,10 @@ reported as clean.
 
 ## Deprecated
 
-- `guard` → `enforce`
-- `patrol` → `check`
+- `guard` → `enforce` — removed in 0.4.0
+- `patrol` → `check` — removed in 0.4.0
 
-Both aliases remain functional through 0.3.x with a deprecation warning; removed in 0.4.
+Use `enforce` and `check`.
 
 ---
 
@@ -116,7 +135,10 @@ Both aliases remain functional through 0.3.x with a deprecation warning; removed
 Este arquivo é o que qualquer agente lê para saber o que o Steve faz — o `help` imprime
 este arquivo palavra por palavra. Resumo: o Steve tem três modos (Criação, Governança,
 Direção) e oito comandos (`start`, `resume`, `enforce`, `check`, `build`, `handoff`,
-`arsenal`, `help`), mais dois aliases depreciados (`guard`→`enforce`, `patrol`→`check`).
+`arsenal`, `help`). Roda em Claude Code, Kilo e Codex: as leis (`AGENTS.md`, `docs/design/`,
+`design_lint`, pre-commit, CI) valem igual nos três; só a Criação degrada fora do Claude Code
+(os plugins `frontend-design` e `ui-ux-pro-max` são exclusivos do Claude). Os aliases
+`guard`/`patrol` foram removidos na 0.4.0 — use `enforce` e `check`.
 Toda mudança de UI num projeto governado passa pelo Steve: peça o contrato via `handoff`
 antes de escrever código, e rode `check` antes de commitar — isso vale mesmo para agentes
 que nunca invocaram o plugin, porque o gate de lint roda no pre-commit e na CI

@@ -59,7 +59,7 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         with:
           severity: warning
-          scandir: "./scripts"
+          scandir: "./skills/steve-designer/scripts"
           additional_files: "install.sh"
 
       - name: Check file structure
@@ -77,21 +77,93 @@ jobs:
           test -f commands/build.md               || { echo "::error::missing commands/build.md"; exit 1; }
           test -f commands/handoff.md             || { echo "::error::missing commands/handoff.md"; exit 1; }
           test -f commands/help.md                || { echo "::error::missing commands/help.md"; exit 1; }
-          test -f commands/guard.md               || { echo "::error::missing commands/guard.md"; exit 1; }
-          test -f commands/patrol.md              || { echo "::error::missing commands/patrol.md"; exit 1; }
           for agent in tokens-engineer component-builder design-critic design-enforcer; do
             test -f "agents/${agent}.md" || { echo "::error::missing agents/${agent}.md"; exit 1; }
           done
-          for script in check_arsenal.sh init_project_brief.py start_preview.sh ingest_design_system.py design_lint.mjs steve_paths.py; do
-            test -f "scripts/${script}" || { echo "::error::missing scripts/${script}"; exit 1; }
+          for script in check_arsenal.sh init_project_brief.py start_preview.sh ingest_design_system.py design_lint.mjs steve_paths.py hook_design_lint.sh; do
+            test -f "skills/steve-designer/scripts/${script}" || { echo "::error::missing skills/steve-designer/scripts/${script}"; exit 1; }
           done
+          for tpl in AGENTS.md.template.md ci-design-check.template.yml codex-config.toml.template mcp.json.template precommit-design.template.sh; do
+            test -f "skills/steve-designer/templates/${tpl}" || { echo "::error::missing skills/steve-designer/templates/${tpl}"; exit 1; }
+          done
+          test -f scripts/build_dist.mjs    || { echo "::error::missing scripts/build_dist.mjs"; exit 1; }
+          test -f adapters/kilo/README.md   || { echo "::error::missing adapters/kilo/README.md"; exit 1; }
+          test -f adapters/codex/README.md  || { echo "::error::missing adapters/codex/README.md"; exit 1; }
           echo "Structure OK."
 
+      - name: Build the Kilo and Codex bundles
+        run: node scripts/build_dist.mjs --out dist
+
+      - name: Assert generated bundles are self-contained and anchored
+        run: |
+          set -e
+          test -f dist/kilo/skills/steve-designer/SKILL.md || { echo "::error::kilo bundle missing SKILL.md"; exit 1; }
+          test -f dist/kilo/skills/steve-designer/scripts/design_lint.mjs || { echo "::error::kilo bundle missing scripts"; exit 1; }
+          test -f dist/kilo/skills/steve-designer/commands/enforce.md || { echo "::error::kilo bundle missing command workflows"; exit 1; }
+          test -x dist/kilo/skills/steve-designer/scripts/check_arsenal.sh || { echo "::error::kilo bundle lost the exec bit"; exit 1; }
+          test -f dist/kilo/command/steve-enforce.md || { echo "::error::kilo bundle missing dispatchers"; exit 1; }
+          test -f dist/codex/.agents/skills/steve-designer/SKILL.md || { echo "::error::codex bundle missing SKILL.md"; exit 1; }
+          test -f dist/codex/.codex/agents/steve_design_enforcer.toml || { echo "::error::codex bundle missing agents"; exit 1; }
+          test -f dist/codex/.codex/mcp.toml || { echo "::error::codex bundle missing the MCP fragment"; exit 1; }
+          test -f dist/codex/.codex/hooks.json || { echo "::error::codex bundle missing hooks.json"; exit 1; }
+          test ! -e dist/codex/.codex/hooks.toml || { echo "::error::the invalid hooks.toml adapter came back"; exit 1; }
+          test ! -d dist/codex/.codex/prompts || { echo "::error::Codex prompts are not shipped"; exit 1; }
+          # No Claude-only placeholder may survive into a bundle.
+          ! grep -rq 'CLAUDE_PLUGIN_ROOT' dist || { echo "::error::CLAUDE_PLUGIN_ROOT leaked into dist"; exit 1; }
+          # Every skill-owned reference must be anchored, never bare.
+          ! grep -rqE '(^|[^/A-Za-z_])scripts/(check_arsenal\.sh|ingest_design_system\.py|init_project_brief\.py|start_preview\.sh|hook_design_lint\.sh|steve_paths\.py)' dist || { echo "::error::a skill script reference is not anchored"; exit 1; }
+          # The vendored linter must stay project-relative.
+          grep -rq 'scripts/design_lint.mjs' dist || { echo "::error::the vendored linter reference disappeared"; exit 1; }
+          # The arsenal must be pinned to the target CLI in each bundle.
+          grep -q 'check_arsenal.sh --cli kilo' dist/kilo/skills/steve-designer/references/phase-playbook.md || { echo "::error::the Kilo arsenal is not pinned to kilo"; exit 1; }
+          grep -q 'check_arsenal.sh --cli codex' dist/codex/.agents/skills/steve-designer/references/phase-playbook.md || { echo "::error::the Codex arsenal is not pinned to codex"; exit 1; }
+          echo "Bundles OK."
+
+      - name: Install and uninstall rehearsal in an isolated HOME
+        run: |
+          set -e
+          FAKE_HOME="$(mktemp -d)"
+          HOME="$FAKE_HOME" ./install.sh --cli kilo --global
+          HOME="$FAKE_HOME" ./install.sh --cli codex --global
+          test -f "$FAKE_HOME/.config/kilo/skills/steve-designer/SKILL.md" || { echo "::error::kilo skill not installed"; exit 1; }
+          test -f "$FAKE_HOME/.config/kilo/command/steve-enforce.md" || { echo "::error::kilo commands not installed"; exit 1; }
+          test -f "$FAKE_HOME/.agents/skills/steve-designer/SKILL.md" || { echo "::error::codex skill not installed"; exit 1; }
+          test -f "$FAKE_HOME/.codex/agents/steve_design_enforcer.toml" || { echo "::error::codex agents not installed"; exit 1; }
+          test -f "$FAKE_HOME/.codex/hooks.json" || { echo "::error::codex hooks.json not written"; exit 1; }
+          python3 -c "import json,os,sys; json.load(open(os.path.expanduser('$FAKE_HOME/.codex/hooks.json')))" || { echo "::error::codex hooks.json is not valid JSON"; exit 1; }
+          # No unsubstituted token may survive an install.
+          ! grep -rq '<STEVE_SKILL_DIR>' "$FAKE_HOME/.config/kilo" "$FAKE_HOME/.agents" "$FAKE_HOME/.codex" || { echo "::error::skill-dir token was not substituted"; exit 1; }
+          # The dispatcher must point at the real absolute skill path.
+          grep -q "$FAKE_HOME/.config/kilo/skills/steve-designer/commands/enforce.md" "$FAKE_HOME/.config/kilo/command/steve-enforce.md" || { echo "::error::dispatcher not anchored to the installed skill"; exit 1; }
+          # Re-installing must be a no-op, not a collision failure.
+          HOME="$FAKE_HOME" ./install.sh --cli kilo --global
+          HOME="$FAKE_HOME" ./install.sh --cli codex --global
+          HOME="$FAKE_HOME" ./install.sh --cli kilo --uninstall
+          HOME="$FAKE_HOME" ./install.sh --cli codex --uninstall
+          test ! -e "$FAKE_HOME/.config/kilo/skills/steve-designer" || { echo "::error::kilo skill survived uninstall"; exit 1; }
+          test ! -e "$FAKE_HOME/.agents/skills/steve-designer" || { echo "::error::codex skill survived uninstall"; exit 1; }
+          test ! -e "$FAKE_HOME/.codex/agents/steve_design_enforcer.toml" || { echo "::error::codex agents survived uninstall"; exit 1; }
+          test ! -e "$FAKE_HOME/.config/kilo/.steve-designer-manifest.json" || { echo "::error::kilo manifest survived uninstall"; exit 1; }
+          # A manifest-less uninstall must be completely inert: no config edits, no deletions.
+          H2="$(mktemp -d)"
+          HOME="$H2" ./install.sh --cli codex --global
+          rm -f "$H2/.codex/.steve-designer-manifest.json"
+          cp "$H2/.codex/hooks.json" "$H2/hooks.before"
+          HOME="$H2" ./install.sh --cli codex --uninstall || true
+          cmp -s "$H2/.codex/hooks.json" "$H2/hooks.before" || { echo "::error::manifest-less uninstall modified hooks.json"; exit 1; }
+          test -f "$H2/.agents/skills/steve-designer/SKILL.md" || { echo "::error::manifest-less uninstall deleted installed files"; exit 1; }
+          rm -rf "$H2"
+          rm -rf "$FAKE_HOME"
+          echo "Install rehearsal OK."
+
       - name: Run design_lint tests
-        run: node --test scripts/design_lint.test.mjs scripts/design_lint.cli.test.mjs
+        run: node --test skills/steve-designer/scripts/design_lint.test.mjs skills/steve-designer/scripts/design_lint.cli.test.mjs
+
+      - name: Run build_dist tests
+        run: node --test scripts/build_dist.test.mjs
 
       - name: Run ingest_design_system tests
-        run: python3 scripts/test_ingest.py
+        run: python3 skills/steve-designer/scripts/test_ingest.py
 
       - name: install.sh sanity check
         run: |

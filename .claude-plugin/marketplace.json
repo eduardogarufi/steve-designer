@@ -5,15 +5,15 @@
     "url": "https://github.com/eduardogarufi"
   },
   "metadata": {
-    "description": "Agentic design director for Claude Code that owns the UI design system of any project.",
-    "version": "0.3.0"
+    "description": "Agentic design director that owns the UI design system of any project, in Claude Code, Kilo, and Codex.",
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "steve-designer",
       "source": "./",
-      "description": "Agentic design director that owns the UI design system of any project, across three modes: Creation (discovery, reference synthesis, tokens, build, polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline), Governance (adopts and enforces an existing design system with a mechanical + semantic gate), and Direction (builds or hands off every subsequent UI change, then verifies it).",
-      "version": "0.3.0",
+      "description": "Agentic design director that owns the UI design system of any project, across three modes: Creation (discovery, reference synthesis, tokens, build, polish — delegating execution to frontend-design, ui-ux-pro-max, Playwright, baseline-ui, and the accessibility/motion polish pipeline), Governance (adopts and enforces an existing design system with a mechanical + semantic gate), and Direction (builds or hands off every subsequent UI change, then verifies it). Runs in Claude Code, Kilo, and Codex from one portable source: the enforcement lives in git-level artifacts (AGENTS.md, docs/design/, design_lint, pre-commit, CI), so it holds regardless of which agent wrote the code.",
+      "version": "0.4.0",
       "author": {
         "name": "Eduardo Garufi",
         "email": "eduardo@capitaltrend.group",
@@ -32,9 +32,10 @@
         "frontend",
         "agentic",
         "claude-code",
+        "kilo",
+        "multi-cli",
         "governance",
-        "enforcement",
-        "codex"
+        "enforcement"
       ],
       "category": "design",
       "strict": false

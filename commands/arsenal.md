@@ -6,12 +6,12 @@ You are running the **arsenal check + install** command for steve-designer.
 
 ## Step 1 — Run the check
 
-Execute `${CLAUDE_PLUGIN_ROOT}/scripts/check_arsenal.sh` and show the full output to the user. Do not paraphrase — the user needs to see the exact ✓/✗ status.
+Execute `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/scripts/check_arsenal.sh --cli claude` and show the full output to the user. Do not paraphrase — the user needs to see the exact ✓/✗ status.
 
 ## Step 2 — Decide based on exit code
 
-- **Exit 0** — everything installed. Acknowledge briefly ("Arsenal full — you're ready.") and stop. Do not continue to install.
-- **Exit 2** — `claude` CLI not found. This means the user is not in Claude Code. Tell them: "I can't see the `claude` CLI on PATH. steve-designer runs inside Claude Code — install it from https://docs.claude.com/claude-code then come back." Stop.
+- **Exit 0** — everything actionable installed. Acknowledge briefly ("Arsenal full — you're ready.") and stop. Do not continue to install.
+- **Exit 2** — no supported CLI detected. This means the user is not inside Claude Code, Kilo, or Codex. Tell them: "I couldn't detect a supported CLI. steve-designer runs in Claude Code, Kilo, or Codex — install one and come back." Stop.
 - **Exit 1** — items missing. Continue to Step 3.
 
 ## Step 3 — Offer to install
@@ -20,7 +20,7 @@ If items are missing, ask the user:
 
 > "N item(s) are missing. Want me to run the install commands now, or would you rather copy them yourself?"
 
-- If the user agrees (any affirmative: "yes", "go", "install", "sure", "do it"): run `${CLAUDE_PLUGIN_ROOT}/scripts/check_arsenal.sh --install -y`. Stream the output inline. Confirm success or surface failures.
+- If the user agrees (any affirmative: "yes", "go", "install", "sure", "do it"): run `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/scripts/check_arsenal.sh --cli claude --install -y`. Stream the output inline. Confirm success or surface failures.
 - If the user declines: stop. The install block is already on-screen — they can copy-paste.
 - If the user is ambiguous: default to asking one concrete question rather than installing.
 
@@ -40,3 +40,7 @@ If any command failed, list the failures and suggest running them manually.
 - Never auto-install without an explicit "yes" from the user in Step 3.
 - Never edit the install commands — the script is the source of truth for what steve-designer needs.
 - Do not launch the six-phase design flow from this command. This command is purely setup.
+- The script is CLI-aware (`--cli claude|kilo|codex`). Outside Claude Code, `frontend-design`
+  and `ui-ux-pro-max-skill` are reported as **degraded** rather than missing: Creation mode
+  runs without them, and Governance/Direction are unaffected. `--install` is a no-op outside
+  Claude Code — MCP servers there are config merges, not installs.

@@ -14,14 +14,16 @@ It works through three mechanisms, run in order. **INGEST** auto-detects the rep
 
 ## The portable-layer rule
 
-Governance mode is built so the guarantee survives outside Claude Code. A Claude skill cannot run inside Codex, so the guarantee lives in git-level artifacts that any agent — or no agent — passes through. The manifest, `AGENTS.md`, `design-lint`, and the pre-commit + CI wiring are the actual enforcement; the skill, commands, hook, and subagent are a convenience layer that makes the same enforcement pleasant inside Claude Code and degrades gracefully everywhere else.
+Governance mode is built so the guarantee survives outside Claude Code. A Claude skill cannot run inside Codex, so the guarantee lives in git-level artifacts that any agent — or no agent — passes through. The manifest, `AGENTS.md`, `design-lint`, and the pre-commit + CI wiring are the actual enforcement; the skill, commands, hook, and subagent are a convenience layer that makes the same enforcement pleasant in every CLI and degrades gracefully where a feature does not exist.
 
 | Layer | Artifacts | Runs where | Role |
 |-------|-----------|------------|------|
-| **Portable (the guarantee)** | `docs/design/**` (manifest, design doc, contrast, screens, decisions, handoffs, capabilities), `AGENTS.md`, `scripts/design_lint.mjs`, pre-commit hook, CI workflow | Git / any agent / CI — Claude **and** Codex | Blocks non-conforming code regardless of who wrote it |
-| **Convenience (Claude-side)** | This skill, `/steve-designer:enforce`, `/steve-designer:check`, `/steve-designer:build`, `/steve-designer:handoff`, `hooks/design-lint-hook.sh`, `agents/design-enforcer.md`, `agents/design-critic.md` | Claude Code only | Sets up the portable layer, catches violations in-session, adds semantic review |
+| **Portable (the guarantee)** | `docs/design/**` (manifest, design doc, contrast, screens, decisions, handoffs, capabilities), `AGENTS.md`, `scripts/design_lint.mjs`, pre-commit hook, CI workflow | Git / any agent / CI — Claude, Kilo, **and** Codex | Blocks non-conforming code regardless of who wrote it |
+| **Convenience (per-CLI)** | This skill, the eight commands, `agents/design-enforcer.md`, `agents/design-critic.md`, and the in-session hook | Claude Code (all), Kilo (all but the in-session hook), Codex (all) | Sets up the portable layer, catches violations in-session where the CLI supports a hook, adds semantic review |
 
-The test of the design: if you deleted the entire Claude convenience layer, the pre-commit hook and CI check would still block a hardcoded hex pushed from Codex. That is the point.
+The test of the design: if you deleted every convenience layer, the pre-commit hook and CI check would still block a hardcoded hex pushed from Codex or Kilo. That is the point.
+
+Only two things differ by CLI, and neither touches the guarantee: **Kilo has no in-session hook** (no `hooks.json`; it relies on pre-commit + CI + `check`), and **Creation degrades outside Claude Code** because the Anthropic design engines (`frontend-design`, `ui-ux-pro-max-skill`) are Claude-only. `references/arsenal.md` carries the full matrix.
 
 ---
 
@@ -106,6 +108,6 @@ Each source has a `dir` (glob to scan for component files) and/or a `package` (t
 
 ## Operating cadence
 
-- **`enforce` — once per repo.** Run `/steve-designer:enforce` a single time to set up: INGEST the design system, generate `docs/design/`, CODIFY the `AGENTS.md` law, install the pre-commit hook and CI workflow, and configure the (≤3) MCP servers for Claude and Codex. Re-run only when the design system itself changes (new tokens, new components) so the manifest stays current.
+- **`enforce` — once per repo.** Run the enforce workflow a single time to set up: INGEST the design system, generate `docs/design/`, CODIFY the `AGENTS.md` law, install the pre-commit hook and CI workflow, and configure the (≤3) MCP servers for the CLI in use (Claude Code, Kilo, or Codex). Re-run only when the design system itself changes (new tokens, new components) so the manifest stays current.
 - **hook + pre-commit + CI — continuously, automatically.** The PostToolUse hook catches violations while Claude is editing; the pre-commit hook blocks a bad commit locally; CI blocks a bad PR. These run without anyone invoking them and cover code from any agent.
 - **`check` — before PRs, and after any executor.** Run `/steve-designer:check` on the change before opening a pull request: the mechanical lint (blocking), the `design-enforcer` semantic review (severity-rated), and the `design-critic` visual pass when a preview exists or `--visual` is passed. This is the deliberate, human-in-the-loop checkpoint on top of the automatic gates — and it is how Direction mode closes the loop on work done by `build` or by an external executor from a `handoff` contract.

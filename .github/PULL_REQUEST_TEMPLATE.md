@@ -19,14 +19,14 @@ Fill in the sections below — delete anything that doesn't apply.
 
 <!-- Short bullet list of what you touched. Example:
 - Added `Pitch` entry to `awwwards-dna.md` with its DNA
-- Bumped version to 0.2.0
+- Bumped version to 0.4.0
 - Fixed `check_arsenal.sh` on zsh
 -->
 
 ## Verification
 
 - [ ] `./install.sh --project` runs cleanly against a scratch directory
-- [ ] `scripts/check_arsenal.sh` executes without error
+- [ ] `skills/steve-designer/scripts/check_arsenal.sh` executes without error
 - [ ] For reference additions: included a written **DNA** (not just a name) per `CONTRIBUTING.md`
 - [ ] For schema changes: updated `CHANGELOG.md`
 

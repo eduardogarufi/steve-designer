@@ -18,18 +18,29 @@ quality is made or broken.
 
 ```
 steve-designer/
-├── .claude-plugin/plugin.json      # plugin manifest
+├── .claude-plugin/plugin.json      # plugin manifest (Claude adapter — stays at the root)
 ├── .claude-plugin/marketplace.json # marketplace manifest
 ├── agents/                         # subagent prompts (tokens, build, critic, enforcer)
-├── commands/                       # slash commands (8 + 2 deprecated aliases)
-├── scripts/                        # install + arsenal + ingest + lint + preview helpers
-├── skills/steve-designer/
+├── commands/                       # slash commands (Claude adapter)
+├── hooks/                          # PostToolUse design-lint hook (Claude adapter)
+├── adapters/                       # per-CLI sources for Kilo and Codex
+│   ├── kilo/                       # README + kilo.json MCP template
+│   └── codex/                      # README + hooks/MCP TOML templates
+├── scripts/                        # repo-level tooling (build_dist)
+├── skills/steve-designer/          # THE SINGLE SOURCE — self-contained and portable
 │   ├── SKILL.md                    # the brain
 │   ├── references/                 # catalogs, capabilities.md — see below
-│   └── templates/                  # brief, manifest, decisions, handoff, design-doc
+│   ├── scripts/                    # lint, arsenal, ingest, preview helpers + tests
+│   └── templates/                  # brief, design-doc, AGENTS.md, CI, pre-commit, MCP
 ├── docs/                           # user-facing install docs (HELP.md, INSTALACAO.md)
-└── install.sh                      # installer
+└── install.sh                      # multi-CLI installer (claude | kilo | codex)
 ```
+
+The Claude Code plugin layout is fixed by convention, so the Claude adapter
+(`.claude-plugin/`, `commands/`, `agents/`, `hooks/`) stays at the repository
+root. Everything portable lives inside `skills/steve-designer/`; `adapters/`
+holds only the per-CLI glue for Kilo and Codex, and `scripts/build_dist.mjs`
+renders `dist/kilo/` and `dist/codex/` from that single source.
 
 ## Local setup
 
@@ -47,8 +58,9 @@ For a one-shot sanity check on the plugin structure, the CI workflow runs:
 - `python3` validation of `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`
 - `shellcheck` on every shell script
 - a structure check for the required commands, agents, and scripts
-- `node --test scripts/design_lint.test.mjs scripts/design_lint.cli.test.mjs`
-- `python3 scripts/test_ingest.py`
+- `node --test scripts/build_dist.test.mjs`
+- `node --test skills/steve-designer/scripts/design_lint.test.mjs skills/steve-designer/scripts/design_lint.cli.test.mjs`
+- `python3 skills/steve-designer/scripts/test_ingest.py`
 - a syntax check of `install.sh` (`bash -n install.sh`, `install.sh --help`)
 
 Reproduce it locally before opening a PR.

@@ -49,7 +49,7 @@ If **both** the new and the legacy path exist, stop and name both files. Never c
 **Steve owns the UI design system of any project it is invoked in; every UI change goes through Steve.** That ownership plays out in three modes:
 
 - **Creation** (the six phases below) — blank page → shipped UI with real identity. Steve builds the system.
-- **Governance** — adopt an *existing* codebase's design system and keep it faithful during ongoing development, in Claude Code **and** Codex. Use when the project already has tokens, primitives, and packages, and the problem is drift/hallucination, not a missing identity. `/steve-designer:enforce` (one-time setup per repo) then `/steve-designer:check` (verify any change).
+- **Governance** — adopt an *existing* codebase's design system and keep it faithful during ongoing development, in Claude Code, Kilo, **and** Codex. Use when the project already has tokens, primitives, and packages, and the problem is drift/hallucination, not a missing identity. `/steve-designer:enforce` (one-time setup per repo) then `/steve-designer:check` (verify any change).
 - **Direction** — drive one UI change on an already-governed project. `/steve-designer:build` (Steve builds it via `component-builder`) or `/steve-designer:handoff` (Steve hands the same contract to any other executor — Claude, Codex, v0, Lovable, a human — and closes with `check`).
 
 ### The eight commands
@@ -65,7 +65,25 @@ If **both** the new and the legacy path exist, stop and name both files. Never c
 | `/steve-designer:arsenal` | Transversal | Check the toolchain. |
 | `/steve-designer:help` | Transversal | Print `references/capabilities.md` — the map, for humans and agents. |
 
-`guard` and `patrol` are **deprecated aliases** for `enforce` and `check` through the 0.3.x series; they warn and forward. Removed in 0.4.
+`guard` and `patrol` were **deprecated aliases** for `enforce` and `check`; they were removed in 0.4.0. Use `/steve-designer:enforce` and `/steve-designer:check`.
+
+### Other CLIs
+
+Steve also runs in **Kilo** and **Codex**, from the same source in this skill directory. The
+law is identical everywhere — `AGENTS.md`, `docs/design/**`, `scripts/design_lint.mjs`, the
+pre-commit hook, and CI are portable and enforce regardless of which agent wrote the code.
+What differs is only the convenience layer:
+
+| | Claude Code | Kilo | Codex |
+|---|---|---|---|
+| Commands | `/steve-designer:<cmd>` | `/steve-<cmd>` | `$steve-designer <cmd>` |
+| Subagents | `agents/*.md` | `agent/steve-*.md` | `.codex/agents/steve_*.toml` |
+| In-session hook | PostToolUse | — (git gate only) | `PostToolUse` on `apply_patch` |
+| Creation engines | full | degraded | degraded |
+
+Governance and Direction run at full capacity in all three; only Creation degrades outside
+Claude Code (the Anthropic design engines are Claude-only). `references/arsenal.md` carries
+the full matrix.
 
 Governance is built on portable artifacts — the manifest, `AGENTS.md`, the `design-lint` gate (pre-commit + CI) — so the guarantee holds regardless of which agent wrote the code. The skill, commands, hook, and `design-enforcer` subagent are the Claude-side convenience layer.
 
@@ -96,7 +114,7 @@ AGENTS.md                  # stays at the root — it is where agents look
 
 **Gate:** User has the essential plugins installed, OR has explicitly chosen to skip and accept degraded mode.
 
-**First run on a machine:** Run `scripts/check_arsenal.sh` from the skill directory. It reports what's installed and what's missing from the three tiers (essential, strong, optional). See `references/arsenal.md` for the full map of what each plugin does and why.
+**First run on a machine:** Run `scripts/check_arsenal.sh --cli claude` from the skill directory. It reports what's installed and what's missing from the three tiers (essential, strong, optional). See `references/arsenal.md` for the full map of what each plugin does and why.
 
 If essential plugins are missing, say something like:
 
@@ -399,14 +417,36 @@ Read these when spawning the corresponding subagent:
 - `templates/decisions.template.md` — Decision history and the halt-and-ask queue
 - `templates/handoff.template.md` — The execution contract, agnostic of executor
 - `templates/claude-md-snippet.template.md` — Snippet to paste into the project's CLAUDE.md
+- `templates/AGENTS.md.template.md` — The law written into a governed project's root
+- `templates/precommit-design.template.sh` — The pre-commit gate
+- `templates/ci-design-check.template.yml` — The CI gate (+ optional axe-core a11y job)
+- `templates/mcp.json.template` — Claude Code MCP servers for a governed project
+- `templates/codex-config.toml.template` — Codex MCP servers for a governed project
+- `templates/design-system-manifest.template.json` — Manifest shape reference
+
+## Commands
+
+- `commands/start.md` — Creation from zero (six phases)
+- `commands/resume.md` — Creation, resumed from the brief
+- `commands/enforce.md` — Governance setup: INGEST → CODIFY → gate
+- `commands/check.md` — Governance verification (working tree, commit, range, PR)
+- `commands/build.md` — Direction: build or conform one screen
+- `commands/handoff.md` — Direction: the execution contract for any executor
+- `commands/arsenal.md` — Toolchain check
+- `commands/help.md` — Capability map
+
+Outside Claude Code these workflows are reached through thin per-CLI dispatchers that
+load this skill and run the named workflow from `commands/<name>.md`.
 
 ## Scripts
 
-- `scripts/check_arsenal.sh` — Arsenal verification; prints what's installed + install commands for what's missing
+- `scripts/check_arsenal.sh` — Arsenal verification, CLI-aware (`--cli claude|kilo|codex`)
 - `scripts/ingest_design_system.py` — Scans the repo and emits the design-system manifest
 - `scripts/design_lint.mjs` — The mechanical gate; resolves the scope (`--changed`, `--commit`, `--range`, `--pr`)
 - `scripts/init_project_brief.py` — Creates the initial brief from the template
 - `scripts/start_preview.sh` — Starts a local dev server and opens Playwright screenshot
+- `scripts/hook_design_lint.sh` — Portable in-session gate used by CLI hooks (Codex `PostToolUse` on `apply_patch`)
+- `scripts/steve_paths.py` — Shared manifest/brief path resolution
 
 ---
 
