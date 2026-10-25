@@ -68,6 +68,23 @@ full list before returning; these three are the ones most often violated in prac
 - **Feedback `fg` vs `solid`** (rule 5) — feedback text always reads the `fg` slot, never
   `solid`.
 
+## Apply `references/laws-of-ux.md`
+
+Path: `skills/steve-designer/references/laws-of-ux.md`. Before returning, check the laws
+you can verify in the code you just wrote:
+
+- **UX-1** — one primary-variant action per view.
+- **UX-2** — hit areas ≥44×44 px (never below 24×24), labels bound to their inputs.
+- **UX-4** — spacing inside a group is at least one scale step tighter than between groups.
+- **UX-6** — every async action renders a pending state and blocks double submit;
+  content loads use skeletons shaped like the content.
+- **UX-12** — same role, same component and variant as the rest of the product.
+- **UX-15** — inputs normalize common variants, validate on blur/submit, and errors say
+  how to fix the value.
+- **UX-16** — every input has the right `type`, `inputmode` and `autocomplete`.
+
+List any departure in your self-critique with the law ID.
+
 ## What you MUST do
 
 ### 1. Consult `frontend-design` if installed

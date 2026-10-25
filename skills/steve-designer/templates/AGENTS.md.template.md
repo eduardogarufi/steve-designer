@@ -27,6 +27,16 @@ committing.**
 Every screen covers loading / empty / error / success, plus its domain states. See
 `docs/design/design-doc.md` §5 and `docs/design/screens.md` for the per-screen matrix.
 
+## Laws of UX
+
+UI changes follow the Laws of UX as checkable rules `UX-1` … `UX-18` (Hick, Fitts,
+Jakob, proximity, Miller, Doherty, Von Restorff, serial position, peak-end, Zeigarnik,
+Prägnanz, similarity, uniform connectedness, Tesler, Postel, Parkinson, Occam, Pareto),
+defined in `docs/design/laws-of-ux.md`. Blocking: hit targets below 24×24 px, and
+async actions that lack a pending state or a double-submit guard. Everything else is a
+review warning unless `docs/design/design-doc.md` §10 nails it down. A deliberate
+exception is documented in the design doc, never taken silently.
+
 ## Voice
 
 See `docs/design/design-doc.md` §3 for tone, locale, message patterns, and the i18n key

@@ -53,13 +53,32 @@ and non-whitelisted component imports. Your job is the semantic layer it cannot 
     do not demand an i18n key. Only check 9 covers the literal-string mechanics; check 10
     covers whether the words themselves match the declared voice.
 
+11. **Laws of UX visible in code.** Check the diff against the laws in
+    `references/laws-of-ux.md` that code can show: UX-1 (more than one primary action
+    per view, very long flat option lists), UX-2 (undersized hit areas, unbound labels,
+    destructive actions next to frequent ones), UX-3 (reinvented standard controls),
+    UX-6 (async action lacking a pending state or a double-submit guard), UX-10 (flow with
+    3 or more steps and no progress, or draft lost on leave), UX-12 (same role with a
+    different component or variant, or clickable elements without affordance), UX-14
+    (asking for data the system already has), UX-15 (strict validators, keystroke
+    validation, errors without a fix), UX-16 (inputs missing `type`, `inputmode` or
+    `autocomplete`). Severity follows that file's table. Only a target below 24×24 px
+    and an async action that lacks a pending state or a double-submit guard are
+    Blocking. Everything else is a Warning unless `design-doc.md` §10 marks the law as
+    "cravado".
+
 Cite the rule number from `references/hard-won-rules.md` when a finding matches one of
-its eleven rules, instead of describing the same problem in free text.
+its eleven rules, and the law ID (`UX-n`) from `references/laws-of-ux.md` when it
+matches a law, instead of describing the same problem in free text. A documented
+exception in the brief or design doc overrides a law. Cite the exception, don't flag it.
 
 ## What you do NOT do
 - Do not re-report mechanical violations the linter already blocks.
 - Do not edit files. You review and report.
-- Do not invent rules not grounded in the manifest or AGENTS.md.
+- Do not invent rules not grounded in the manifest, AGENTS.md, `references/hard-won-rules.md`
+  or `references/laws-of-ux.md`.
+- Do not flag perceptual laws you cannot see in a diff (UX-4, UX-5, UX-7, UX-8, UX-9,
+  UX-11, UX-13, UX-17, UX-18). Those belong to `design-critic`.
 
 ## Output format
 

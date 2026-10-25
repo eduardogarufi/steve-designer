@@ -72,6 +72,7 @@ outside Claude Code, and only the in-session warning differs for Kilo.
 | `docs/design/decisions.md` | Steve, `component-builder` (halt-and-ask) | History: version · date · author · change · lesson. Also the queue of pending design decisions raised by halt-and-ask. |
 | `docs/design/handoffs/` | Steve (`handoff`) | One file per contract delivered to an external executor, named `<date>-<screen>.md`. |
 | `docs/design/capabilities.md` | Steve (`enforce`) | Copy of this capability map, so any agent in the project can read Steve cold without the plugin. Overwritten only when unchanged from the last template, or with confirmation. |
+| `docs/design/laws-of-ux.md` | Steve (`enforce`) | Copy of the Laws of UX as checkable rules (UX-1 … UX-18), so any executor builds and reviews against them without the plugin. Same overwrite rule as `capabilities.md`. |
 | `AGENTS.md` (project root) | Steve (`enforce`) | The project-wide law: points to `docs/design/` and to `docs/design/capabilities.md`; states the handoff-before/check-after rule. |
 
 ## How another agent uses Steve without the plugin

@@ -321,7 +321,7 @@ Once a section (or the whole site) is approved visually, run the polish orchestr
 2. **`/fixing-accessibility`** — keyboard, labels, focus, semantic HTML, contrast
 3. **`/fixing-motion-performance`** — reduced-motion, 60fps budget, CLS
 4. **`/design-review`** — full design audit (if installed)
-5. **`design-critic` subagent** (`agents/design-critic.md`) — the final "senior designer reviewing for approval" pass
+5. **`design-critic` subagent** (`agents/design-critic.md`) — the final "senior designer reviewing for approval" pass, including the **Usability** score against `references/laws-of-ux.md`
 
 Run them in this order. Each may produce file changes; surface them to the user between steps if substantial.
 
@@ -397,6 +397,7 @@ Read these when the corresponding phase starts. Don't preload all of them.
 - `references/orchestration-map.md` — Full version of the phase-to-tool mapping
 - `references/anti-patterns.md` — What makes output look AI-generic, and how to avoid each
 - `references/hard-won-rules.md` — Non-negotiable UI rules learned the hard way (floating surfaces, confirm dialogs, feedback text, empty/success copy)
+- `references/laws-of-ux.md` — The 18 Laws of UX (Hick, Fitts, Jakob, proximity, Miller, Doherty, Von Restorff, serial position, peak-end, Zeigarnik, Prägnanz, similarity, uniform connectedness, Tesler, Postel, Parkinson, Occam, Pareto) as checkable rules `UX-1` … `UX-18`, with severity; applied by `component-builder`, `design-enforcer` and `design-critic`
 - `references/governance-playbook.md` — Governance mode: enforcement model, severity, scopes, stack behavior
 - `references/capabilities.md` — The canonical capability map; `/steve-designer:help` prints it verbatim
 

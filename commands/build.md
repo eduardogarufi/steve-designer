@@ -16,12 +16,13 @@ Then read:
 - `docs/design/brief.md`, falling back to `design-brief.md` at the root (same both-exist rule: stop and name both);
 - `docs/design/screens.md` — the screen inventory;
 - `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/references/hard-won-rules.md` — the non-negotiable UI rules.
+- `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/references/laws-of-ux.md` — the Laws of UX as checkable rules (UX-1 … UX-18).
 
 ## 2. Build the screen contract
 
 Assemble the nine sections of `${CLAUDE_PLUGIN_ROOT}/skills/steve-designer/templates/handoff.template.md`:
 
-1. **Scope** — screen, route, what changes, what must not change.
+1. **Scope** — screen, route, what changes, what must not change, the core tasks this screen exists for (UX-18), and any documented exception to a Law of UX.
 2. **Allowed components** — the exact list from the manifest, with imports and props. Nothing outside it.
 3. **Tokens by role** — color by role, spacing, radius, typography, feedback slots, z-index tier, breakpoints.
 4. **Required states** — loading, empty, error, success, plus the domain states this screen needs.
@@ -35,7 +36,7 @@ This contract is built **the same way** whether it is executed here or handed to
 
 ## 3. Two paths
 
-- **New screen** — spawn `component-builder` (`${CLAUDE_PLUGIN_ROOT}/agents/component-builder.md`) with the contract, the tokens path, and the hard-won rules. One screen or section at a time; never batch.
+- **New screen** — spawn `component-builder` (`${CLAUDE_PLUGIN_ROOT}/agents/component-builder.md`) with the contract, the tokens path, the hard-won rules, and the Laws of UX. One screen or section at a time; never batch.
 - **Existing screen (conform)** — first run the mechanical lint scoped to that screen's files (`node scripts/design_lint.mjs --changed`, or read the current violations for those paths), then spawn `component-builder` in conform mode with **the violation list plus the contract**. Conforming means bringing the screen to the contract, not rewriting it.
 
 ## 4. Halt-and-ask is respected

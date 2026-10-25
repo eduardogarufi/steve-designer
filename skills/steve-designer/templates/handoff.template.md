@@ -16,6 +16,8 @@
 - **Route:** {{ROUTE}}
 - **What changes:** {{WHAT_CHANGES}}
 - **What must not change:** {{WHAT_MUST_NOT_CHANGE}}
+- **Core tasks (UX-18):** {{CORE_TASKS}} <!-- the 1-3 tasks this screen exists for; the single primary action (UX-1) is one of them -->
+- **Laws of UX:** build against `docs/design/laws-of-ux.md` (UX-1 … UX-18). Any deliberate exception is named here: {{UX_LAW_EXCEPTIONS}}
 
 ## 2. Allowed components
 

@@ -279,7 +279,7 @@ The eight commands: `start`, `resume`, `enforce`, `check`, `build`, `handoff`, `
 
 ## Status
 
-**Version 0.4.0.** Multi-CLI: the same portable law in Claude Code, Kilo, and Codex.
+**Version 0.5.0.** Laws of UX (UX-1 … UX-18) as checkable rules, on top of the 0.4.0 multi-CLI law for Claude Code, Kilo, and Codex.
 Creation mode is battle-tested; Governance and Direction run at full capacity in every
 CLI. If a reference is wrong, a catalog entry is missing, or a subagent produces something
 off, flag it — the skill improves by running.

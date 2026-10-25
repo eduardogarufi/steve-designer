@@ -5,6 +5,30 @@ All notable changes to **steve-designer** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 — 2026-10-25
+
+### Added — the Laws of UX as checkable rules
+
+- **`references/laws-of-ux.md`.** Eighteen UX laws, each rewritten as a rule with a
+  check and a fix, and cited by ID: Hick (UX-1), Fitts (UX-2), Jakob (UX-3),
+  proximity (UX-4), Miller (UX-5), Doherty (UX-6), Von Restorff (UX-7), serial position
+  (UX-8), peak-end (UX-9), Zeigarnik (UX-10), Prägnanz (UX-11), similarity (UX-12),
+  uniform connectedness (UX-13), Tesler (UX-14), Postel (UX-15), Parkinson (UX-16),
+  Occam (UX-17), Pareto (UX-18). Only two are Blocking: a hit target below 24×24 px, and
+  an async action that lacks a pending state or a double-submit guard. A law marked "cravado"
+  in design-doc §10 is also enforced as Blocking. A deliberate exception documented in
+  the brief or design doc overrides a law.
+- **`component-builder`** self-checks the laws it can verify in code (UX-1, 2, 4, 6, 12,
+  15, 16) before returning.
+- **`design-enforcer`** check 11: the laws visible in a diff (UX-1, 2, 3, 6, 10, 12, 14,
+  15, 16), cited by ID. It leaves the perceptual laws to the critic.
+- **`design-critic`** scores a sixth dimension, **Usability**, against all eighteen laws
+  and tags its usability critiques with the law ID.
+- **Screen contract.** `build`/`handoff` name the screen's core tasks (UX-18) and any
+  documented exception to a law. `enforce` copies the file to `docs/design/laws-of-ux.md`
+  so it travels with the project, and the generated `AGENTS.md` carries a Laws of UX
+  section pointing to it.
+
 ## 0.4.0 — 2026-09-22
 
 ### Added — the same design-system law in Claude Code, Kilo, and Codex
